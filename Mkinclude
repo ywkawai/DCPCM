@@ -1,0 +1,127 @@
+# -*- makefile -*- for jcup_sample/sample
+
+###
+# TOPDIR and JCUPDIR should be defined as environment variables.
+###
+ TOPDIR 	= $(HOME)/workspace/DCPCM
+ JCUPDIR 	= $(HOME)/workspace/jcup
+ GTOOL5DIR      = $(HOME)/lib
+ SPMLDIR        = $(HOME)/lib
+ ISPACKDIR      = $(HOME)/lib
+ NETCDFDIR      = /usr
+ DCPAMDIR       = $(HOME)/workspace/dcpam5-20150217
+ DSOGCMDIR      = $(HOME)/workspace/DQGModel
+
+###
+# set compilers and compile options
+### 
+
+FC		= mpif90 
+LD     		= mpif90
+
+OPTIMIZEFLAG	= -O -fopenmp
+# DEBUGFLAG 	= -g
+CPPFLAG 	= -cpp
+DIALECTFLAG	+= -ffree-line-length-none
+# DIALECTFLAG	+= -assume byterecl
+
+INCLUDEFLAG	= -I$(INCDIR) -I$(JCUPINCDIR) -I$(DCPAMINCDIR) -I$(DSOGCMINCDIR) \
+	          -I$(SPMLINCDIR) -I$(GTOOL5INCDIR) -I$(NETCDFINCDIR)
+FFLAGS		= $(OPTIMIZEFLAG) $(DEBUGFLAG) $(DIALECTFLAG) $(CPPFLAG) $(INCLUDEFLAG)
+LDFLAGS 	= 
+
+###
+# Other commands
+### 
+
+AR     		= ar
+ARFLAGS		= ruv
+MV     		= mv -f
+CP      	= cp -f
+RM      	= rm -f
+
+INSTALL 	= cp -u
+# INSTALL	= install
+
+
+###
+# make clean cleanup these.
+##
+TRASH	= *.o *~ *.mod *.lst
+
+########################################################################
+# You may not edit below.
+########################################################################
+
+BINDIR   	= $(TOPDIR)/bin
+LIBDIR   	= $(TOPDIR)/lib
+INCDIR   	= $(TOPDIR)/include
+
+DRIVERDIR	= $(TOPDIR)/driver
+
+COMMONDIR	= $(TOPDIR)/common
+COMMONLIB	= libcommon.a
+
+ATMDIR  	= $(TOPDIR)/atm
+ATMLIB  	= libatm.a
+
+#DYNDIR  	= $(ATMDIR)/dynamics
+#DYNLIB		= libdyn.a
+
+#LANDDIR 	= $(TOPDIR)/land
+#LANDLIB		= libland.a
+
+OCNDIR  	= $(TOPDIR)/ocn
+OCNLIB  	= libocn.a
+
+#ICEDIR  	= $(TOPDIR)/ice
+#ICELIB  	= libice.a 
+
+#CHMDIR   	= $(TOPDIR)/chm
+#CHMLIB		= libchm.a
+
+
+JCUPINCDIR	= $(JCUPDIR)/include
+JCUPLIBDIR	= $(JCUPDIR)/lib
+JCUPLIB		= $(JCUPLIBDIR)/libjcup.a
+
+GTOOL5INCDIR    = $(GTOOL5DIR)/include
+GTOOL5LIBDIR    = $(GTOOL5DIR)/lib
+GTOOL5LIB       = $(GTOOL5LIBDIR)/libgtool5-mpi.a
+
+SPMLINCDIR      = $(SPMLDIR)/include
+SPMLLIBDIR      = $(SPMLDIR)/lib
+SPMLLIB         = $(SPMLLIBDIR)/libspml-lapack-omp.a
+
+ISPACKINCDIR    = $(ISPACKDIR)/include
+ISPACKLIBDIR    = $(ISPACKDIR)/lib
+ISPACKLIB       = $(ISPACKLIBDIR)/libisp-mpi.a
+
+NETCDFINCDIR    = $(GTOOL5DIR)/include
+NETCDFLIBDIR    = $(GTOOL5DIR)/lib
+NETCDFLIB       = $(GTOOL5LIBDIR)/libnetcdf.a
+NETCDFFLIB       = $(GTOOL5LIBDIR)/libnetcdff.a
+
+DCPAMINCDIR     = $(DCPAMDIR)/include
+DCPAMLIBDIR     = $(DCPAMDIR)/lib
+DCPAMLIB     = $(DCPAMLIBDIR)/libdcpam5.a
+
+DSOGCMINCDIR     = $(DSOGCMDIR)/include
+DSOGCMLIBDIR     = $(DSOGCMDIR)/lib
+DSOGCMLIB     = $(DSOGCMLIBDIR)/libDSOGCM.a
+
+JINTPOBJ 	= interpolate_data.o
+
+
+
+
+###
+# Following GNUmake's implicit rule.
+###
+.SUFFIXES: .f90 .o
+
+COMPILE.f90	= $(FC) $(FFLAGS) $(TARGET_ARCH) -c
+LINK.f90   	= $(FC) $(FFLAGS) $(LDFLAGS) $(TARGET_ARCH)
+
+%.o : %.f90
+	$(COMPILE.f90) $(OUTPUT_OPTION) $<

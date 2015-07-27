@@ -1,0 +1,17 @@
+#!/bin/bash
+
+TOPDIR=/home/ykawai/workspace/DCPCM
+atm_pe=4
+atm_wdir=${TOPDIR}/atm/dcpam5
+atm_nml=${atm_wdir}/conf/dcpam_APE_T21L26.conf
+ocn_pe=1
+ocn_wdir=${TOPDIR}/ocn
+chm_pe=1
+
+ln -fs ${TOPDIR}/bin/atm_driver ${atm_wdir}
+ln -fs ${TOPDIR}/bin/ocn_driver ${ocn_wdir}
+
+
+#ln -fs ../bin/chm_driver
+mpiexec -n ${atm_pe} -wdir ${atm_wdir} ${atm_wdir}/atm_driver -N=${atm_nml} : \
+        -n ${ocn_pe} -wdir ${ocn_wdir} ${ocn_wdir}/ocn_driver 1> Stdout 2>Stderr

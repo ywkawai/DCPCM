@@ -1,0 +1,217 @@
+spml-0.8.0/libsrc/w_mpi_module_sjpack „ÅÆ„Åø„Å´Â≠òÂú®: .libs
+spml-0.8.0/libsrc/w_mpi_module_sjpack „ÅÆ„Åø„Å´Â≠òÂú®: Makefile
+spml-0.8.0/libsrc/w_mpi_module_sjpack „ÅÆ„Åø„Å´Â≠òÂú®: Makefile.in
+spml-0.8.0/libsrc/w_mpi_module_sjpack „ÅÆ„Åø„Å´Â≠òÂú®: libspml_w_mpi_module_sjpack.la
+diff -u spml/libsrc/w_mpi_module_sjpack/w_base_mpi_module_sjpack.f90 spml-0.8.0/libsrc/w_mpi_module_sjpack/w_base_mpi_module_sjpack.f90
+--- spml/libsrc/w_mpi_module_sjpack/w_base_mpi_module_sjpack.f90	2015-08-12 15:08:12.799291417 +0900
++++ spml-0.8.0/libsrc/w_mpi_module_sjpack/w_base_mpi_module_sjpack.f90	2015-08-10 14:58:26.293033695 +0900
+@@ -53,6 +53,8 @@
+ 
+   logical               :: w_base_initialize=.false.   ! ΩÈ¥¸≤Ω•’•È•√•∞
+ 
++  integer :: MPI_MY_COMM
++  
+   private
+   private im, jm, nn, mm, nm                  ! ≥ ª“≈¿øÙ, ¿⁄√««»øÙ
+ 
+@@ -76,7 +78,9 @@
+   save jc                                     !  ¨ª∂≥ ª“≈¿«€ŒÛ§Œ¬Á§≠§µ
+   save w_base_initialize                      ! ΩÈ¥¸≤Ω•’•È•∞
+ 
+-
++  public :: MPI_MY_COMM
++  save MPI_MY_COMM
++  
+   contains
+   !--------------- ΩÈ¥¸≤Ω -----------------
+     subroutine w_base_mpi_Initial
+@@ -95,7 +99,7 @@
+       allocate(c((mm+1)*(mm+1)))              !  —¥πÕ—∫Ó∂»«€ŒÛ
+ 
+       ! √Ì∞’ :  Ã•Î°º•¡•Û§À§Ë§√§∆ w_base_Initial §¨∏∆§Û§«§¢§Î§≥§»§Ú≤æƒÍ
+-      call sjpini(mm,nm,jm,jc,im,p,r,it,t)
++      call sjpini(mm,nm,jm,jc,im,p,r,it,t,MPI_MY_COMM)
+       call sjinic(mm,c)
+ 
+       allocate(v_Lat(jc),v_Lat_Weight(jc))             ! ≥ ª“≈¿∫¬…∏≥ «º«€ŒÛ
+@@ -306,38 +310,38 @@
+       if ( ifval == 0 ) then
+          if ( openmp ) then
+             call sjpgos(mm,nm,nn,im,jc,w_Rdata,xv_data,&
+-                        it,t,p,q,r,ws,wg,w,ipval)
++                        it,t,p,q,r,ws,wg,w,ipval,MPI_MY_COMM)
+          else
+             call sjpg2s(mm,nm,nn,im,jc,w_Rdata,xv_data,&
+-                        it,t,p,q,r,ws,wg,w,ipval)
++                        it,t,p,q,r,ws,wg,w,ipval,MPI_MY_COMM)
+          endif
+          call sjcrdn(mm,nn,w_Rdata,w_xv)
+       else if ( ifval == -1 ) then
+          if ( openmp ) then
+             call sjpgos(mm,nm,nn,im,jc,w_Rdata,xv_data,&
+-                        it,t,p,q,r,ws,wg,w,ipval)
++                        it,t,p,q,r,ws,wg,w,ipval,MPI_MY_COMM)
+          else
+             call sjpg2s(mm,nm,nn,im,jc,w_Rdata,xv_data,&
+-                        it,t,p,q,r,ws,wg,w,ipval)
++                        it,t,p,q,r,ws,wg,w,ipval,MPI_MY_COMM)
+          endif
+          call sjcrdn(mm,nn,w_Rdata,w_Xdata)
+          call sjcs2x(mm,w_Xdata,w_xv)
+       else if ( ifval == 1 ) then
+          if ( openmp ) then
+             call sjpgos(mm,nm,nm,im,jc,w_Ydata,xv_data,&
+-                        it,t,p,q,r,ws2,wg,w,ipval)
++                        it,t,p,q,r,ws2,wg,w,ipval,MPI_MY_COMM)
+          else
+             call sjpg2s(mm,nm,nm,im,jc,w_Ydata,xv_data,&
+-                        it,t,p,q,r,ws2,wg,w,ipval)
++                        it,t,p,q,r,ws2,wg,w,ipval,MPI_MY_COMM)
+          endif
+          call sjcy2s(mm,w_Ydata,w_xv,c)
+       else if ( ifval == 2 ) then
+          if ( openmp ) then
+             call sjpgos(mm,nm,nn,im,jc,w_Rdata,xv_data*sin(xv_Lat),&
+-                        it,t,p,q,r,ws,wg,w,ipval)
++                        it,t,p,q,r,ws,wg,w,ipval,MPI_MY_COMM)
+          else
+             call sjpg2s(mm,nm,nn,im,jc,w_Rdata,xv_data*sin(xv_Lat),&
+-                        it,t,p,q,r,ws,wg,w,ipval)
++                        it,t,p,q,r,ws,wg,w,ipval,MPI_MY_COMM)
+          endif
+          call sjcrdn(mm,nn,w_Rdata,w_xv)
+       end if
+@@ -483,10 +487,10 @@
+       !
+       if ( openmp ) then
+          call sjpgos(mm,nm,nm,im,jc,w_Ydata,xv_U,&
+-              it,t,p,q,r,ws2,wg,w,1)
++              it,t,p,q,r,ws2,wg,w,1,MPI_MY_COMM)
+       else
+          call sjpg2s(mm,nm,nm,im,jc,w_Ydata,xv_U,&
+-              it,t,p,q,r,ws2,wg,w,1)
++              it,t,p,q,r,ws2,wg,w,1,MPI_MY_COMM)
+       endif
+       call sjcrdn(mm,nm,w_Ydata,w_Xdata)
+       call sjcs2x(mm,w_Xdata,w_Div)
+@@ -496,10 +500,10 @@
+       !
+       if ( openmp ) then
+          call sjpgos(mm,nm,nm,im,jc,w_Ydata,xv_V,&
+-              it,t,p,q,r,ws2,wg,w,1)
++              it,t,p,q,r,ws2,wg,w,1,MPI_MY_COMM)
+       else
+          call sjpg2s(mm,nm,nm,im,jc,w_Ydata,xv_V,&
+-              it,t,p,q,r,ws2,wg,w,1)
++              it,t,p,q,r,ws2,wg,w,1,MPI_MY_COMM)
+       endif
+       call sjcrdn(mm,nm,w_Ydata,w_Xdata)
+       call sjcs2x(mm,w_Xdata,w_Vor)
+@@ -567,10 +571,10 @@
+       !
+       if ( openmp ) then
+          call sjpgos(mm,nm,nm,im,jc,w_Ydata,xv_UCosLat,&
+-              it,t,p,q,r,ws2,wg,w,2)
++              it,t,p,q,r,ws2,wg,w,2,MPI_MY_COMM)
+       else
+          call sjpg2s(mm,nm,nm,im,jc,w_Ydata,xv_UCosLat,&
+-              it,t,p,q,r,ws2,wg,w,2)
++              it,t,p,q,r,ws2,wg,w,2,MPI_MY_COMM)
+       endif
+       call sjcrdn(mm,nm,w_Ydata,w_Xdata)
+       call sjcs2x(mm,w_Xdata,w_Div)
+@@ -580,10 +584,10 @@
+       !
+       if ( openmp ) then
+          call sjpgos(mm,nm,nm,im,jc,w_Ydata,xv_VCosLat,&
+-              it,t,p,q,r,ws2,wg,w,2)
++              it,t,p,q,r,ws2,wg,w,2,MPI_MY_COMM)
+       else
+          call sjpg2s(mm,nm,nm,im,jc,w_Ydata,xv_VCosLat,&
+-              it,t,p,q,r,ws2,wg,w,2)
++              it,t,p,q,r,ws2,wg,w,2,MPI_MY_COMM)
+       endif
+       call sjcrdn(mm,nm,w_Ydata,w_Xdata)
+       call sjcs2x(mm,w_Xdata,w_Vor)
+spml-0.8.0/libsrc/w_mpi_module_sjpack „ÅÆ„Åø„Å´Â≠òÂú®: w_base_mpi_module_sjpack.lo
+spml-0.8.0/libsrc/w_mpi_module_sjpack „ÅÆ„Åø„Å´Â≠òÂú®: w_base_mpi_module_sjpack.mod
+spml-0.8.0/libsrc/w_mpi_module_sjpack „ÅÆ„Åø„Å´Â≠òÂú®: w_base_mpi_module_sjpack.o
+spml-0.8.0/libsrc/w_mpi_module_sjpack „ÅÆ„Åø„Å´Â≠òÂú®: w_deriv_mpi_module_sjpack.lo
+spml-0.8.0/libsrc/w_mpi_module_sjpack „ÅÆ„Åø„Å´Â≠òÂú®: w_deriv_mpi_module_sjpack.mod
+spml-0.8.0/libsrc/w_mpi_module_sjpack „ÅÆ„Åø„Å´Â≠òÂú®: w_deriv_mpi_module_sjpack.o
+diff -u spml/libsrc/w_mpi_module_sjpack/w_integral_mpi_module_sjpack.f90 spml-0.8.0/libsrc/w_mpi_module_sjpack/w_integral_mpi_module_sjpack.f90
+--- spml/libsrc/w_mpi_module_sjpack/w_integral_mpi_module_sjpack.f90	2015-08-12 15:08:12.803291417 +0900
++++ spml-0.8.0/libsrc/w_mpi_module_sjpack/w_integral_mpi_module_sjpack.f90	2015-08-10 13:50:51.124957565 +0900
+@@ -29,7 +29,7 @@
+   !  §ƒ§§§∆§œ ISPACK/SJPACK §Œ•ﬁ•À•Â•¢•Î§Úª≤æ»§µ§Ï§ø§§.
+   !
+   use w_base_module_sjpack, only : im, x_Lon_Weight, y_Lat_Weight
+-  use w_base_mpi_module_sjpack, only : jc, v_Lat_Weight
++  use w_base_mpi_module_sjpack, only : jc, v_Lat_Weight, MPI_MY_COMM
+   use w_integral_module_sjpack, only : IntLon_x, AvrLon_x
+   use mpi
+ 
+@@ -87,7 +87,7 @@
+ 
+       x_IntLatTmp=x_IntLat_xv
+       CALL MPI_ALLREDUCE(x_IntLatTMP,x_IntLat_xv,im,MPI_REAL8, &
+-                         MPI_SUM,MPI_COMM_WORLD,IERR)
++                         MPI_SUM,MPI_MY_COMM,IERR)
+     end function x_IntLat_xv
+ 
+     function v_IntLon_xv(xv_data)
+@@ -125,7 +125,7 @@
+       IntLat_v = sum(v_data * v_Lat_weight)
+       IntLatTmp=IntLat_v
+       CALL MPI_ALLREDUCE(IntLatTMP,IntLat_v,1,MPI_REAL8, &
+-                         MPI_SUM,MPI_COMM_WORLD,IERR)
++                         MPI_SUM,MPI_MY_COMM,IERR)
+ 
+     end function IntLat_v
+ 
+spml-0.8.0/libsrc/w_mpi_module_sjpack „ÅÆ„Åø„Å´Â≠òÂú®: w_integral_mpi_module_sjpack.lo
+spml-0.8.0/libsrc/w_mpi_module_sjpack „ÅÆ„Åø„Å´Â≠òÂú®: w_integral_mpi_module_sjpack.mod
+spml-0.8.0/libsrc/w_mpi_module_sjpack „ÅÆ„Åø„Å´Â≠òÂú®: w_integral_mpi_module_sjpack.o
+diff -u spml/libsrc/w_mpi_module_sjpack/w_mpi_module_sjpack.f90 spml-0.8.0/libsrc/w_mpi_module_sjpack/w_mpi_module_sjpack.f90
+--- spml/libsrc/w_mpi_module_sjpack/w_mpi_module_sjpack.f90	2015-08-12 15:08:12.803291417 +0900
++++ spml-0.8.0/libsrc/w_mpi_module_sjpack/w_mpi_module_sjpack.f90	2015-08-10 13:48:20.680954740 +0900
+@@ -232,6 +232,8 @@
+   use w_base_mpi_module_sjpack
+   use w_deriv_mpi_module_sjpack
+   use w_integral_mpi_module_sjpack
++  use mpi, only: &
++       & MPI_COMM_WORLD
+ 
+   private
+ 
+@@ -300,7 +302,7 @@
+ 
+ contains
+ 
+-    subroutine w_mpi_initial(n_in,i_in,j_in,np_in)
++    subroutine w_mpi_initial(n_in,i_in,j_in,np_in,MY_COMM)
+       !
+       ! •π•⁄•Ø•»•Î —¥π§Œ≥ ª“≈¿øÙ, «»øÙ§™§Ë§” OPENMP ª»Õ—ª˛§Œ
+       ! ∫«¬Á•π•Ï•√•…øÙ§Ú¿ﬂƒÍ§π§Î.
+@@ -319,7 +321,18 @@
+       integer,intent(in) :: j_in              !(in) ≥ ª“≈¿øÙ(∆ÓÀÃ)
+       integer,intent(in) :: n_in              !(in) ¿⁄√««»øÙ§Œ¿ﬂƒÍ
+       integer,intent(in), optional :: np_in   !(in) OPENMP §«§Œ∫«¬Á•π•Ï•√•…øÙ
++      integer,intent(in), optional :: MY_COMM
+ 
++      ! Add by ykawai ************************
++      if ( present(MY_COMM) ) then
++         MPI_MY_COMM = MY_COMM
++         call MessageNotify('M', 'w_mpi_initial', &
++              & 'MPI communicator is replaced by %d.', i=(/MY_COMM/) )
++      else
++         MPI_MY_COMM = MPI_COMM_WORLD
++      end if
++      !***************************************
++      
+       if ( present (np_in) )then
+          call w_initial(n_in,i_in,j_in,np_in)
+       else
+spml-0.8.0/libsrc/w_mpi_module_sjpack „ÅÆ„Åø„Å´Â≠òÂú®: w_mpi_module_sjpack.lo
+spml-0.8.0/libsrc/w_mpi_module_sjpack „ÅÆ„Åø„Å´Â≠òÂú®: w_mpi_module_sjpack.mod
+spml-0.8.0/libsrc/w_mpi_module_sjpack „ÅÆ„Åø„Å´Â≠òÂú®: w_mpi_module_sjpack.o

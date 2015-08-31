@@ -1,0 +1,104 @@
+spml-0.8.0/libsrc/wa_mpi_module ã®ã¿ã«å­˜åœ¨: .libs
+spml-0.8.0/libsrc/wa_mpi_module ã®ã¿ã«å­˜åœ¨: Makefile
+spml-0.8.0/libsrc/wa_mpi_module ã®ã¿ã«å­˜åœ¨: Makefile.in
+spml-0.8.0/libsrc/wa_mpi_module ã®ã¿ã«å­˜åœ¨: libspml_wa_mpi_module.la
+diff -u spml/libsrc/wa_mpi_module/wa_base_mpi_module.f90 spml-0.8.0/libsrc/wa_mpi_module/wa_base_mpi_module.f90
+--- spml/libsrc/wa_mpi_module/wa_base_mpi_module.f90	2015-08-12 15:08:12.803291417 +0900
++++ spml-0.8.0/libsrc/wa_mpi_module/wa_base_mpi_module.f90	2015-07-26 12:49:34.538165392 +0900
+@@ -44,7 +44,7 @@
+   use dc_message
+   use w_base_module, only : im, jm, nm
+   use w_base_mpi_module, only : id, jd, jc, &
+-                                it, t, y, ip, p, r, ia, a
++                                it, t, y, ip, p, r, ia, a, MPI_MY_COMM
+   use wa_base_module, only : km
+   implicit none
+ 
+@@ -209,7 +209,7 @@
+       xva_work(1:im,1:jc,1:k) = xva_data
+ 
+       call sntgms(nm,im,id,jc,jd,k,xva_work,wa_xva,&
+-              it,t,y,ipk(1:k,:),pk(1:k,:),rk(1:k,:),ia,a,q,ws,ww,ipval,ifval,w)
++              it,t,y,ipk(1:k,:),pk(1:k,:),rk(1:k,:),ia,a,q,ws,ww,ipval,ifval,w, MPI_MY_COMM)
+ 
+     end function wa_xva
+ 
+spml-0.8.0/libsrc/wa_mpi_module ã®ã¿ã«å­˜åœ¨: wa_base_mpi_module.lo
+spml-0.8.0/libsrc/wa_mpi_module ã®ã¿ã«å­˜åœ¨: wa_base_mpi_module.mod
+spml-0.8.0/libsrc/wa_mpi_module ã®ã¿ã«å­˜åœ¨: wa_base_mpi_module.o
+spml-0.8.0/libsrc/wa_mpi_module ã®ã¿ã«å­˜åœ¨: wa_deriv_mpi_module.lo
+spml-0.8.0/libsrc/wa_mpi_module ã®ã¿ã«å­˜åœ¨: wa_deriv_mpi_module.mod
+spml-0.8.0/libsrc/wa_mpi_module ã®ã¿ã«å­˜åœ¨: wa_deriv_mpi_module.o
+diff -u spml/libsrc/wa_mpi_module/wa_integral_mpi_module.f90 spml-0.8.0/libsrc/wa_mpi_module/wa_integral_mpi_module.f90
+--- spml/libsrc/wa_mpi_module/wa_integral_mpi_module.f90	2015-08-12 15:08:12.803291417 +0900
++++ spml-0.8.0/libsrc/wa_mpi_module/wa_integral_mpi_module.f90	2015-07-26 02:17:45.950169916 +0900
+@@ -43,7 +43,7 @@
+   !
+   !
+   use w_base_module, only : im, x_Lon_Weight, y_Lat_Weight
+-  use w_base_mpi_module, only : jc, v_Lat_Weight
++  use w_base_mpi_module, only : jc, v_Lat_Weight, MPI_MY_COMM
+   use wa_integral_module, only : a_IntLon_xa, a_AvrLon_xa
+   use mpi
+ 
+@@ -101,7 +101,7 @@
+ 
+       xa_IntLatTmp=xa_IntLat_xva
+       CALL MPI_ALLREDUCE(xa_IntLatTMP,xa_IntLat_xva,im*size(xva_data,3),MPI_REAL8, &
+-                         MPI_SUM,MPI_COMM_WORLD,IERR)
++                         MPI_SUM,MPI_MY_COMM,IERR)
+ 
+     end function xa_IntLat_xva
+ 
+@@ -148,7 +148,7 @@
+ 
+       a_IntLatTmp=a_IntLat_va
+       CALL MPI_ALLREDUCE(a_IntLatTMP,a_IntLat_va,size(va_data,2),MPI_REAL8, &
+-                         MPI_SUM,MPI_COMM_WORLD,IERR)
++                         MPI_SUM,MPI_MY_COMM,IERR)
+ 
+     end function a_IntLat_va
+ 
+spml-0.8.0/libsrc/wa_mpi_module ã®ã¿ã«å­˜åœ¨: wa_integral_mpi_module.lo
+spml-0.8.0/libsrc/wa_mpi_module ã®ã¿ã«å­˜åœ¨: wa_integral_mpi_module.mod
+spml-0.8.0/libsrc/wa_mpi_module ã®ã¿ã«å­˜åœ¨: wa_integral_mpi_module.o
+diff -u spml/libsrc/wa_mpi_module/wa_mpi_module.f90 spml-0.8.0/libsrc/wa_mpi_module/wa_mpi_module.f90
+--- spml/libsrc/wa_mpi_module/wa_mpi_module.f90	2015-08-12 15:08:12.803291417 +0900
++++ spml-0.8.0/libsrc/wa_mpi_module/wa_mpi_module.f90	2015-08-10 14:04:43.056973183 +0900
+@@ -385,7 +385,7 @@
+   public w_spectrum_VMiss                   ! ·çÂ»ÃÍ
+ 
+ contains
+-  subroutine wa_mpi_Initial(n_in,i_in,j_in,k_in,np_in)
++  subroutine wa_mpi_Initial(n_in,i_in,j_in,k_in,np_in,MY_COMM)
+     !
+     ! ¥¹¥Ú¥¯¥È¥ëÊÑ´¹¤Î³Ê»ÒÅÀ¿ô, ÇÈ¿ô, ºÇÂç¥Ç¡¼¥¿¿ô¤òÀßÄê¤¹¤ë.
+     !
+@@ -397,12 +397,23 @@
+     integer,intent(in) :: n_in                ! ÀÚÃÇÇÈ¿ô
+     integer,intent(in) :: k_in                ! ºÇÂç¥Ç¡¼¥¿¿ô(ÁØ¿ô)
+     integer,intent(in), optional :: np_in     !(in) ¥À¥ß¡¼ÊÑ¿ô
+-
++    integer,intent(in), optional :: MY_COMM
++    
+     if ( present (np_in) )then
+        call MessageNotify('W','wa_mpi_initial',&
+             'OpenMP calculation not supported with wa_mpi_module.')
+     endif
+ 
++    ! Add by ykawai ************************
++    if ( present(MY_COMM) ) then
++       MPI_MY_COMM = MY_COMM
++       call MessageNotify('M', 'wa_mpi_initial', &
++            & 'MPI communicator is replaced by %d.', i=(/MY_COMM/) )
++    else
++       MPI_MY_COMM = MPI_COMM_WORLD
++    end if
++    !***************************************
++    
+     call wa_Initial(n_in,i_in,j_in,k_in)
+     call w_base_mpi_Initial
+     call w_deriv_mpi_initial
+spml-0.8.0/libsrc/wa_mpi_module ã®ã¿ã«å­˜åœ¨: wa_mpi_module.lo
+spml-0.8.0/libsrc/wa_mpi_module ã®ã¿ã«å­˜åœ¨: wa_mpi_module.mod
+spml-0.8.0/libsrc/wa_mpi_module ã®ã¿ã«å­˜åœ¨: wa_mpi_module.o

@@ -1,0 +1,124 @@
+diff -u ispack_ori/ispack-1.0.4/snpack-mpi/src/snmini.f ispack-1.0.3/snpack-mpi/src/snmini.f
+--- ispack_ori/ispack-1.0.4/snpack-mpi/src/snmini.f	2015-06-30 13:46:26.000000000 +0900
++++ ispack-1.0.3/snpack-mpi/src/snmini.f	2015-07-26 01:55:54.206170073 +0900
+@@ -20,7 +20,7 @@
+ ************************************************************************
+ *     INITIALIZATION OF SNPACK-MPI                            2002/05/16
+ ************************************************************************
+-      SUBROUTINE SNMINI(MM,IM,JM,JC,IT,T,Y,IP,P,R,IA,A)
++      SUBROUTINE SNMINI(MM,IM,JM,JC,IT,T,Y,IP,P,R,IA,A,MPI_MY_COMM)
+ 
+       IMPLICIT REAL*8(A-H,O-Z)
+       INCLUDE 'mpif.h'      
+@@ -32,14 +32,16 @@
+       DIMENSION IA((MM+1)*(MM+1),4)
+       DIMENSION A((MM+1)*(MM+1),6)
+ 
++      INTEGER :: MPI_MY_COMM
++      
+       IF(MOD(JM,2).NE.0) THEN
+         CALL BSDMSG('E','SNMINI','JM MUST BE EVEN.')
+       END IF
+ 
+       JH=JM/2
+ 
+-      CALL MPI_COMM_RANK(MPI_COMM_WORLD,IPROC,IERR)
+-      CALL MPI_COMM_SIZE(MPI_COMM_WORLD,NP,IERR)
++      CALL MPI_COMM_RANK(MPI_MY_COMM,IPROC,IERR)
++      CALL MPI_COMM_SIZE(MPI_MY_COMM,NP,IERR)
+       
+       JPH=(JH-1)/NP+1
+       JS=JPH*IPROC+1
+diff -u ispack_ori/ispack-1.0.4/snpack-mpi/src/snmini.mpif ispack-1.0.3/snpack-mpi/src/snmini.mpif
+--- ispack_ori/ispack-1.0.4/snpack-mpi/src/snmini.mpif	2015-06-30 13:46:26.000000000 +0900
++++ ispack-1.0.3/snpack-mpi/src/snmini.mpif	2015-07-26 01:55:54.206170073 +0900
+@@ -20,7 +20,7 @@
+ ************************************************************************
+ *     INITIALIZATION OF SNPACK-MPI                            2002/05/16
+ ************************************************************************
+-      SUBROUTINE SNMINI(MM,IM,JM,JC,IT,T,Y,IP,P,R,IA,A)
++      SUBROUTINE SNMINI(MM,IM,JM,JC,IT,T,Y,IP,P,R,IA,A,MPI_MY_COMM)
+ 
+       IMPLICIT REAL*8(A-H,O-Z)
+       INCLUDE 'mpif.h'      
+@@ -32,14 +32,16 @@
+       DIMENSION IA((MM+1)*(MM+1),4)
+       DIMENSION A((MM+1)*(MM+1),6)
+ 
++      INTEGER :: MPI_MY_COMM
++      
+       IF(MOD(JM,2).NE.0) THEN
+         CALL BSDMSG('E','SNMINI','JM MUST BE EVEN.')
+       END IF
+ 
+       JH=JM/2
+ 
+-      CALL MPI_COMM_RANK(MPI_COMM_WORLD,IPROC,IERR)
+-      CALL MPI_COMM_SIZE(MPI_COMM_WORLD,NP,IERR)
++      CALL MPI_COMM_RANK(MPI_MY_COMM,IPROC,IERR)
++      CALL MPI_COMM_SIZE(MPI_MY_COMM,NP,IERR)
+       
+       JPH=(JH-1)/NP+1
+       JS=JPH*IPROC+1
+ispack-1.0.3/snpack-mpi/src „ÅÆ„Åø„Å´Â≠òÂú®: snmini.o
+diff -u ispack_ori/ispack-1.0.4/snpack-mpi/src/sntgms.f ispack-1.0.3/snpack-mpi/src/sntgms.f
+--- ispack_ori/ispack-1.0.4/snpack-mpi/src/sntgms.f	2015-06-30 13:46:26.000000000 +0900
++++ ispack-1.0.3/snpack-mpi/src/sntgms.f	2015-07-26 01:57:27.810170061 +0900
+@@ -22,7 +22,7 @@
+ *     (MPI§À§Ë§Î∞¬ƒæ ¬ŒÛ≤Ω)                                   2002/05/20
+ ************************************************************************
+       SUBROUTINE SNTGMS(MM,IM,ID,JM,JD,KM,
+-     &  G,S,IT,T,Y,IP,P,R,IA,A,Q,WS,WW,IPOW,IFLAG,W)
++     &  G,S,IT,T,Y,IP,P,R,IA,A,Q,WS,WW,IPOW,IFLAG,W,MPI_MY_COMM)
+ 
+       IMPLICIT REAL*8(A-H,O-Z)
+       INCLUDE 'mpif.h'      
+@@ -38,7 +38,8 @@
+       DIMENSION Q(KM*((MM+1)/2+MM+1)*JM)
+       DIMENSION WS(*),WW(*)
+       DIMENSION W((MM+1)*(MM+1)*KM)
+-
++      INTEGER :: MPI_MY_COMM
++      
+       LM=(MM+1)*(MM+1)
+ 
+       IF(JM.EQ.0) THEN
+@@ -49,6 +50,6 @@
+       END IF
+       
+       CALL MPI_ALLREDUCE(W,S,LM*KM,
+-     &  MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,IERR)
++     &  MPI_REAL8,MPI_SUM,MPI_MY_COMM,IERR)
+ 
+       END
+diff -u ispack_ori/ispack-1.0.4/snpack-mpi/src/sntgms.mpif ispack-1.0.3/snpack-mpi/src/sntgms.mpif
+--- ispack_ori/ispack-1.0.4/snpack-mpi/src/sntgms.mpif	2015-06-30 13:46:26.000000000 +0900
++++ ispack-1.0.3/snpack-mpi/src/sntgms.mpif	2015-07-26 01:57:27.810170061 +0900
+@@ -22,7 +22,7 @@
+ *     (MPI§À§Ë§Î∞¬ƒæ ¬ŒÛ≤Ω)                                   2002/05/20
+ ************************************************************************
+       SUBROUTINE SNTGMS(MM,IM,ID,JM,JD,KM,
+-     &  G,S,IT,T,Y,IP,P,R,IA,A,Q,WS,WW,IPOW,IFLAG,W)
++     &  G,S,IT,T,Y,IP,P,R,IA,A,Q,WS,WW,IPOW,IFLAG,W,MPI_MY_COMM)
+ 
+       IMPLICIT REAL*8(A-H,O-Z)
+       INCLUDE 'mpif.h'      
+@@ -38,7 +38,8 @@
+       DIMENSION Q(KM*((MM+1)/2+MM+1)*JM)
+       DIMENSION WS(*),WW(*)
+       DIMENSION W((MM+1)*(MM+1)*KM)
+-
++      INTEGER :: MPI_MY_COMM
++      
+       LM=(MM+1)*(MM+1)
+ 
+       IF(JM.EQ.0) THEN
+@@ -49,6 +50,6 @@
+       END IF
+       
+       CALL MPI_ALLREDUCE(W,S,LM*KM,
+-     &  MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,IERR)
++     &  MPI_REAL8,MPI_SUM,MPI_MY_COMM,IERR)
+ 
+       END
+ispack-1.0.3/snpack-mpi/src „ÅÆ„Åø„Å´Â≠òÂú®: sntgms.o

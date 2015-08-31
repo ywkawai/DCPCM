@@ -1,0 +1,187 @@
+ispack-1.0.3/sjpack-mpi/src „ÅÆ„Åø„Å´Â≠òÂú®: ljpgau.o
+ispack-1.0.3/sjpack-mpi/src „ÅÆ„Åø„Å´Â≠òÂú®: ljpini.o
+diff -u ispack_ori/ispack-1.0.4/sjpack-mpi/src/sjpg2s.f ispack-1.0.3/sjpack-mpi/src/sjpg2s.f
+--- ispack_ori/ispack-1.0.4/sjpack-mpi/src/sjpg2s.f	2015-06-30 13:46:26.000000000 +0900
++++ ispack-1.0.3/sjpack-mpi/src/sjpg2s.f	2015-08-10 13:41:16.408946775 +0900
+@@ -20,7 +20,8 @@
+ ************************************************************************
+ *     TRANSFORM GRID TO SPECTRA (using MPI)                   2011/08/29
+ ************************************************************************
+-      SUBROUTINE SJPG2S(MM,NM,NN,IM,JM,S,G,IT,T,P,Q,R,WS,WG,W,IPOW)
++      SUBROUTINE SJPG2S(MM,NM,NN,IM,JM,S,G,IT,T,P,Q,R,WS,WG,W,IPOW,
++     & MPI_MY_COMM)
+ 
+       IMPLICIT REAL*8(A-H,O-Z)
+       INCLUDE 'mpif.h'
+@@ -31,6 +32,8 @@
+       DIMENSION WG(0:IM+1,JM)
+       DIMENSION IT(2,2),T(IM*3,2)
+ 
++      INTEGER :: MPI_MY_COMM
++      
+       IF(JM.EQ.0) THEN
+         CALL BSSET0((2*NN+1-MM)*MM+NN+1,WS)
+       ELSE
+@@ -38,6 +41,6 @@
+       END IF
+ 
+       CALL MPI_ALLREDUCE(WS,S,(2*NN+1-MM)*MM+NN+1,
+-     &    MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,IERR)
++     &    MPI_REAL8,MPI_SUM,MPI_MY_COMM,IERR)
+ 
+       END
+diff -u ispack_ori/ispack-1.0.4/sjpack-mpi/src/sjpg2s.mpif ispack-1.0.3/sjpack-mpi/src/sjpg2s.mpif
+--- ispack_ori/ispack-1.0.4/sjpack-mpi/src/sjpg2s.mpif	2015-06-30 13:46:26.000000000 +0900
++++ ispack-1.0.3/sjpack-mpi/src/sjpg2s.mpif	2015-08-10 13:41:16.408946775 +0900
+@@ -20,7 +20,8 @@
+ ************************************************************************
+ *     TRANSFORM GRID TO SPECTRA (using MPI)                   2011/08/29
+ ************************************************************************
+-      SUBROUTINE SJPG2S(MM,NM,NN,IM,JM,S,G,IT,T,P,Q,R,WS,WG,W,IPOW)
++      SUBROUTINE SJPG2S(MM,NM,NN,IM,JM,S,G,IT,T,P,Q,R,WS,WG,W,IPOW,
++     & MPI_MY_COMM)
+ 
+       IMPLICIT REAL*8(A-H,O-Z)
+       INCLUDE 'mpif.h'
+@@ -31,6 +32,8 @@
+       DIMENSION WG(0:IM+1,JM)
+       DIMENSION IT(2,2),T(IM*3,2)
+ 
++      INTEGER :: MPI_MY_COMM
++      
+       IF(JM.EQ.0) THEN
+         CALL BSSET0((2*NN+1-MM)*MM+NN+1,WS)
+       ELSE
+@@ -38,6 +41,6 @@
+       END IF
+ 
+       CALL MPI_ALLREDUCE(WS,S,(2*NN+1-MM)*MM+NN+1,
+-     &    MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,IERR)
++     &    MPI_REAL8,MPI_SUM,MPI_MY_COMM,IERR)
+ 
+       END
+ispack-1.0.3/sjpack-mpi/src „ÅÆ„Åø„Å´Â≠òÂú®: sjpg2s.o
+diff -u ispack_ori/ispack-1.0.4/sjpack-mpi/src/sjpgos.f ispack-1.0.3/sjpack-mpi/src/sjpgos.f
+--- ispack_ori/ispack-1.0.4/sjpack-mpi/src/sjpgos.f	2015-06-30 13:46:26.000000000 +0900
++++ ispack-1.0.3/sjpack-mpi/src/sjpgos.f	2015-08-10 13:41:31.392947057 +0900
+@@ -21,7 +21,8 @@
+ *     TRANSFORM GRID TO SPECTRA (using MPI)                   2011/09/08
+ *      (SJTGOS§ÚÕ¯Õ—§π§Î Hybrid  ¬ŒÛ)
+ ************************************************************************
+-      SUBROUTINE SJPGOS(MM,NM,NN,IM,JM,S,G,IT,T,P,Q,R,WS,WG,W,IPOW)
++      SUBROUTINE SJPGOS(MM,NM,NN,IM,JM,S,G,IT,T,P,Q,R,WS,WG,W,IPOW, 
++     & MPI_MY_COMM)
+ 
+       IMPLICIT REAL*8(A-H,O-Z)
+       INCLUDE 'mpif.h'
+@@ -32,6 +33,8 @@
+       DIMENSION WG(0:IM+1,JM)
+       DIMENSION IT(2,2),T(IM*3,2)
+ 
++      INTEGER :: MPI_MY_COMM
++      
+       IF(JM.EQ.0) THEN
+         CALL BSSET0((2*NN+1-MM)*MM+NN+1,S)
+       ELSE
+@@ -39,7 +42,7 @@
+       END IF
+ 
+       CALL MPI_ALLREDUCE(S,WS,(2*NN+1-MM)*MM+NN+1,
+-     &    MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,IERR)
++     &    MPI_REAL8,MPI_SUM,MPI_MY_COMM,IERR)
+ 
+       CALL BSCOPY((2*NN+1-MM)*MM+NN+1,WS,S)
+ 
+diff -u ispack_ori/ispack-1.0.4/sjpack-mpi/src/sjpgos.mpif ispack-1.0.3/sjpack-mpi/src/sjpgos.mpif
+--- ispack_ori/ispack-1.0.4/sjpack-mpi/src/sjpgos.mpif	2015-06-30 13:46:26.000000000 +0900
++++ ispack-1.0.3/sjpack-mpi/src/sjpgos.mpif	2015-08-10 13:41:31.392947057 +0900
+@@ -21,7 +21,8 @@
+ *     TRANSFORM GRID TO SPECTRA (using MPI)                   2011/09/08
+ *      (SJTGOS§ÚÕ¯Õ—§π§Î Hybrid  ¬ŒÛ)
+ ************************************************************************
+-      SUBROUTINE SJPGOS(MM,NM,NN,IM,JM,S,G,IT,T,P,Q,R,WS,WG,W,IPOW)
++      SUBROUTINE SJPGOS(MM,NM,NN,IM,JM,S,G,IT,T,P,Q,R,WS,WG,W,IPOW, 
++     & MPI_MY_COMM)
+ 
+       IMPLICIT REAL*8(A-H,O-Z)
+       INCLUDE 'mpif.h'
+@@ -32,6 +33,8 @@
+       DIMENSION WG(0:IM+1,JM)
+       DIMENSION IT(2,2),T(IM*3,2)
+ 
++      INTEGER :: MPI_MY_COMM
++      
+       IF(JM.EQ.0) THEN
+         CALL BSSET0((2*NN+1-MM)*MM+NN+1,S)
+       ELSE
+@@ -39,7 +42,7 @@
+       END IF
+ 
+       CALL MPI_ALLREDUCE(S,WS,(2*NN+1-MM)*MM+NN+1,
+-     &    MPI_REAL8,MPI_SUM,MPI_COMM_WORLD,IERR)
++     &    MPI_REAL8,MPI_SUM,MPI_MY_COMM,IERR)
+ 
+       CALL BSCOPY((2*NN+1-MM)*MM+NN+1,WS,S)
+ 
+ispack-1.0.3/sjpack-mpi/src „ÅÆ„Åø„Å´Â≠òÂú®: sjpgos.o
+diff -u ispack_ori/ispack-1.0.4/sjpack-mpi/src/sjpini.f ispack-1.0.3/sjpack-mpi/src/sjpini.f
+--- ispack_ori/ispack-1.0.4/sjpack-mpi/src/sjpini.f	2015-06-30 13:46:26.000000000 +0900
++++ ispack-1.0.3/sjpack-mpi/src/sjpini.f	2015-08-10 13:28:41.060932595 +0900
+@@ -20,12 +20,14 @@
+ ************************************************************************
+ *     INITIALIZATION OF SJPACK-MPI                            2011/08/25
+ *-----------------------------------------------------------------------
+-      SUBROUTINE SJPINI(MM,NM,JM,JC,IM,P,R,IT,T)
++      SUBROUTINE SJPINI(MM,NM,JM,JC,IM,P,R,IT,T,MPI_MY_COMM)
+ 
+       IMPLICIT REAL*8(A-H,O-Z)
+       INCLUDE 'mpif.h'      
+       DIMENSION P(JM/2,MM+4),R((MM+1)*(2*NM-MM-1)+1),IT(2,2),T(IM*3,2)
+ 
++      INTEGER :: MPI_MY_COMM
++      
+       CALL LJACHK(IA)
+ 
+       IF(IA.EQ.0) THEN
+@@ -38,8 +40,8 @@
+      &      'JM must be a multiple of 8 to use AVX.')
+       END IF
+ 
+-      CALL MPI_COMM_RANK(MPI_COMM_WORLD,IPROC,IERR)
+-      CALL MPI_COMM_SIZE(MPI_COMM_WORLD,NP,IERR)
++      CALL MPI_COMM_RANK(MPI_MY_COMM,IPROC,IERR)
++      CALL MPI_COMM_SIZE(MPI_MY_COMM,NP,IERR)
+ 
+       JA=JM/(2**(IA+1))
+       JH=JM/2
+diff -u ispack_ori/ispack-1.0.4/sjpack-mpi/src/sjpini.mpif ispack-1.0.3/sjpack-mpi/src/sjpini.mpif
+--- ispack_ori/ispack-1.0.4/sjpack-mpi/src/sjpini.mpif	2015-06-30 13:46:26.000000000 +0900
++++ ispack-1.0.3/sjpack-mpi/src/sjpini.mpif	2015-08-10 13:28:41.060932595 +0900
+@@ -20,12 +20,14 @@
+ ************************************************************************
+ *     INITIALIZATION OF SJPACK-MPI                            2011/08/25
+ *-----------------------------------------------------------------------
+-      SUBROUTINE SJPINI(MM,NM,JM,JC,IM,P,R,IT,T)
++      SUBROUTINE SJPINI(MM,NM,JM,JC,IM,P,R,IT,T,MPI_MY_COMM)
+ 
+       IMPLICIT REAL*8(A-H,O-Z)
+       INCLUDE 'mpif.h'      
+       DIMENSION P(JM/2,MM+4),R((MM+1)*(2*NM-MM-1)+1),IT(2,2),T(IM*3,2)
+ 
++      INTEGER :: MPI_MY_COMM
++      
+       CALL LJACHK(IA)
+ 
+       IF(IA.EQ.0) THEN
+@@ -38,8 +40,8 @@
+      &      'JM must be a multiple of 8 to use AVX.')
+       END IF
+ 
+-      CALL MPI_COMM_RANK(MPI_COMM_WORLD,IPROC,IERR)
+-      CALL MPI_COMM_SIZE(MPI_COMM_WORLD,NP,IERR)
++      CALL MPI_COMM_RANK(MPI_MY_COMM,IPROC,IERR)
++      CALL MPI_COMM_SIZE(MPI_MY_COMM,NP,IERR)
+ 
+       JA=JM/(2**(IA+1))
+       JH=JM/2
+ispack-1.0.3/sjpack-mpi/src „ÅÆ„Åø„Å´Â≠òÂú®: sjpini.o

@@ -1,0 +1,47 @@
+spml-0.8.0/libsrc/wa_mpi_module_sjpack ã®ã¿ã«å­˜åœ¨: .libs
+spml-0.8.0/libsrc/wa_mpi_module_sjpack ã®ã¿ã«å­˜åœ¨: Makefile
+spml-0.8.0/libsrc/wa_mpi_module_sjpack ã®ã¿ã«å­˜åœ¨: Makefile.in
+spml-0.8.0/libsrc/wa_mpi_module_sjpack ã®ã¿ã«å­˜åœ¨: libspml_wa_mpi_module_sjpack.la
+spml-0.8.0/libsrc/wa_mpi_module_sjpack ã®ã¿ã«å­˜åœ¨: wa_base_mpi_module_sjpack.lo
+spml-0.8.0/libsrc/wa_mpi_module_sjpack ã®ã¿ã«å­˜åœ¨: wa_base_mpi_module_sjpack.mod
+spml-0.8.0/libsrc/wa_mpi_module_sjpack ã®ã¿ã«å­˜åœ¨: wa_base_mpi_module_sjpack.o
+spml-0.8.0/libsrc/wa_mpi_module_sjpack ã®ã¿ã«å­˜åœ¨: wa_deriv_mpi_module_sjpack.lo
+spml-0.8.0/libsrc/wa_mpi_module_sjpack ã®ã¿ã«å­˜åœ¨: wa_deriv_mpi_module_sjpack.mod
+spml-0.8.0/libsrc/wa_mpi_module_sjpack ã®ã¿ã«å­˜åœ¨: wa_deriv_mpi_module_sjpack.o
+spml-0.8.0/libsrc/wa_mpi_module_sjpack ã®ã¿ã«å­˜åœ¨: wa_integral_mpi_module_sjpack.lo
+spml-0.8.0/libsrc/wa_mpi_module_sjpack ã®ã¿ã«å­˜åœ¨: wa_integral_mpi_module_sjpack.mod
+spml-0.8.0/libsrc/wa_mpi_module_sjpack ã®ã¿ã«å­˜åœ¨: wa_integral_mpi_module_sjpack.o
+diff -u spml/libsrc/wa_mpi_module_sjpack/wa_mpi_module_sjpack.f90 spml-0.8.0/libsrc/wa_mpi_module_sjpack/wa_mpi_module_sjpack.f90
+--- spml/libsrc/wa_mpi_module_sjpack/wa_mpi_module_sjpack.f90	2015-08-12 15:08:12.803291417 +0900
++++ spml-0.8.0/libsrc/wa_mpi_module_sjpack/wa_mpi_module_sjpack.f90	2015-08-10 14:06:30.292975196 +0900
+@@ -393,7 +393,7 @@
+   public w_spectrum_VMiss                   ! ·çÂ»ÃÍ
+ 
+ contains
+-  subroutine wa_mpi_Initial(n_in,i_in,j_in,k_in,np_in)
++  subroutine wa_mpi_Initial(n_in,i_in,j_in,k_in,np_in,MY_COMM)
+     !
+     ! ¥¹¥Ú¥¯¥È¥ëÊÑ´¹¤Î³Ê»ÒÅÀ¿ô, ÇÈ¿ô, ºÇÂç¥Ç¡¼¥¿¿ô¤òÀßÄê¤¹¤ë.
+     !
+@@ -405,7 +405,18 @@
+     integer,intent(in) :: n_in                ! ÀÚÃÇÇÈ¿ô
+     integer,intent(in) :: k_in                ! ºÇÂç¥Ç¡¼¥¿¿ô(ÁØ¿ô)
+     integer,intent(in), optional :: np_in     ! OPENMP ¤Ç¤ÎºÇÂç¥¹¥ì¥Ã¥É¿ô
++    integer,intent(in), optional :: MY_COMM
+ 
++    ! Add by ykawai ************************
++    if ( present(MY_COMM) ) then
++       MPI_MY_COMM = MY_COMM
++       call MessageNotify('M', 'wa_mpi_initial', &
++            & 'MPI communicator is replaced by %d.', i=(/MY_COMM/) )
++    else
++       MPI_MY_COMM = MPI_COMM_WORLD
++    end if
++    !***************************************
++    
+     if ( present(np_in) ) then
+        call wa_Initial(n_in,i_in,j_in,k_in,np_in)
+     else
+spml-0.8.0/libsrc/wa_mpi_module_sjpack ã®ã¿ã«å­˜åœ¨: wa_mpi_module_sjpack.lo
+spml-0.8.0/libsrc/wa_mpi_module_sjpack ã®ã¿ã«å­˜åœ¨: wa_mpi_module_sjpack.mod
+spml-0.8.0/libsrc/wa_mpi_module_sjpack ã®ã¿ã«å­˜åœ¨: wa_mpi_module_sjpack.o

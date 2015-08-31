@@ -1,19 +1,49 @@
-spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: .libs
-spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: Makefile
-spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: Makefile.in
-spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: libspml_wa_mpi_module_sjpack.la
-spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_base_mpi_module_sjpack.lo
-spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_base_mpi_module_sjpack.mod
-spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_base_mpi_module_sjpack.o
-spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_deriv_mpi_module_sjpack.lo
-spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_deriv_mpi_module_sjpack.mod
-spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_deriv_mpi_module_sjpack.o
-spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_integral_mpi_module_sjpack.lo
-spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_integral_mpi_module_sjpack.mod
-spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_integral_mpi_module_sjpack.o
-diff -u spml/libsrc/wa_mpi_module_sjpack/wa_mpi_module_sjpack.f90 spml-0.8.0/libsrc/wa_mpi_module_sjpack/wa_mpi_module_sjpack.f90
---- spml/libsrc/wa_mpi_module_sjpack/wa_mpi_module_sjpack.f90	2015-08-12 15:08:12.803291417 +0900
-+++ spml-0.8.0/libsrc/wa_mpi_module_sjpack/wa_mpi_module_sjpack.f90	2015-08-10 14:06:30.292975196 +0900
+/home/ykawai/Dennou_gitrepo/spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: .libs
+/home/ykawai/Dennou_gitrepo/spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: Makefile
+/home/ykawai/Dennou_gitrepo/spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: Makefile.in
+/home/ykawai/Dennou_gitrepo/spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: libspml_wa_mpi_module_sjpack.la
+/home/ykawai/Dennou_gitrepo/spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_base_mpi_module_sjpack.lo
+/home/ykawai/Dennou_gitrepo/spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_base_mpi_module_sjpack.mod
+/home/ykawai/Dennou_gitrepo/spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_base_mpi_module_sjpack.o
+/home/ykawai/Dennou_gitrepo/spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_deriv_mpi_module_sjpack.lo
+/home/ykawai/Dennou_gitrepo/spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_deriv_mpi_module_sjpack.mod
+/home/ykawai/Dennou_gitrepo/spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_deriv_mpi_module_sjpack.o
+diff -u -r /home/ykawai/Dennou_gitrepo/spml/libsrc/wa_mpi_module_sjpack/wa_integral_mpi_module_sjpack.f90 /home/ykawai/Dennou_gitrepo/spml-0.8.0/libsrc/wa_mpi_module_sjpack/wa_integral_mpi_module_sjpack.f90
+--- /home/ykawai/Dennou_gitrepo/spml/libsrc/wa_mpi_module_sjpack/wa_integral_mpi_module_sjpack.f90	2015-08-12 15:08:12.803291417 +0900
++++ /home/ykawai/Dennou_gitrepo/spml-0.8.0/libsrc/wa_mpi_module_sjpack/wa_integral_mpi_module_sjpack.f90	2015-08-31 16:52:25.391225358 +0900
+@@ -38,7 +38,7 @@
+   !
+   !
+   use w_base_module_sjpack, only : im, x_Lon_Weight, y_Lat_Weight
+-  use w_base_mpi_module_sjpack, only : jc, v_Lat_Weight
++  use w_base_mpi_module_sjpack, only : jc, v_Lat_Weight, MPI_MY_COMM
+   use wa_integral_module_sjpack, only : a_IntLon_xa, a_AvrLon_xa
+   use mpi
+ 
+@@ -96,7 +96,7 @@
+ 
+       xa_IntLatTmp=xa_IntLat_xva
+       CALL MPI_ALLREDUCE(xa_IntLatTMP,xa_IntLat_xva,im*size(xva_data,3),MPI_REAL8, &
+-                         MPI_SUM,MPI_COMM_WORLD,IERR)
++                         MPI_SUM,MPI_MY_COMM,IERR)
+ 
+     end function xa_IntLat_xva
+ 
+@@ -143,7 +143,7 @@
+ 
+       a_IntLatTmp=a_IntLat_va
+       CALL MPI_ALLREDUCE(a_IntLatTMP,a_IntLat_va,size(va_data,2),MPI_REAL8, &
+-                         MPI_SUM,MPI_COMM_WORLD,IERR)
++                         MPI_SUM,MPI_MY_COMM,IERR)
+ 
+     end function a_IntLat_va
+ 
+/home/ykawai/Dennou_gitrepo/spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_integral_mpi_module_sjpack.lo
+/home/ykawai/Dennou_gitrepo/spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_integral_mpi_module_sjpack.mod
+/home/ykawai/Dennou_gitrepo/spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_integral_mpi_module_sjpack.o
+diff -u -r /home/ykawai/Dennou_gitrepo/spml/libsrc/wa_mpi_module_sjpack/wa_mpi_module_sjpack.f90 /home/ykawai/Dennou_gitrepo/spml-0.8.0/libsrc/wa_mpi_module_sjpack/wa_mpi_module_sjpack.f90
+--- /home/ykawai/Dennou_gitrepo/spml/libsrc/wa_mpi_module_sjpack/wa_mpi_module_sjpack.f90	2015-08-12 15:08:12.803291417 +0900
++++ /home/ykawai/Dennou_gitrepo/spml-0.8.0/libsrc/wa_mpi_module_sjpack/wa_mpi_module_sjpack.f90	2015-08-10 14:06:30.292975196 +0900
 @@ -393,7 +393,7 @@
    public w_spectrum_VMiss                   ! ��»��
  
@@ -42,6 +72,6 @@ diff -u spml/libsrc/wa_mpi_module_sjpack/wa_mpi_module_sjpack.f90 spml-0.8.0/lib
      if ( present(np_in) ) then
         call wa_Initial(n_in,i_in,j_in,k_in,np_in)
      else
-spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_mpi_module_sjpack.lo
-spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_mpi_module_sjpack.mod
-spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_mpi_module_sjpack.o
+/home/ykawai/Dennou_gitrepo/spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_mpi_module_sjpack.lo
+/home/ykawai/Dennou_gitrepo/spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_mpi_module_sjpack.mod
+/home/ykawai/Dennou_gitrepo/spml-0.8.0/libsrc/wa_mpi_module_sjpack のみに存在: wa_mpi_module_sjpack.o

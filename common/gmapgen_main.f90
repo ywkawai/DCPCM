@@ -1,14 +1,16 @@
 #include "Component_def.h"
 
 program gmapgen_main
-  use dc_types, only: DP, TOKEN
+
+  use dc_types, only: &
+       & DP, TOKEN, STRING
     
   use grid_mapping_util, only: &
        & gen_gridmapfile_lonlat2lonlat
   
   implicit none
 
-  character(TOKEN) :: &
+  character(STRING) :: &
        & gmapfile_ao, gmapfile_oa
   
   integer :: IMAXA, JMAXA, NMAXA
@@ -19,8 +21,8 @@ program gmapgen_main
 
   !
   !
-  gmapfile_ao = "gmaplonlat_ATM2OCN.dat"  
-  gmapfile_oa = "gmaplonlat_OCN2ATM.dat"
+  gmapfile_ao = GRIDMAPFILE_AO_NAME
+  gmapfile_oa = GRIDMAPFILE_OA_NAME
   
   IMAXA =  AGCM_NX; JMAXA = AGCM_NY; NMAXA = AGCM_NMAX
   IMAXO =  OGCM_NX; JMAXO = OGCM_NY; NMAXO = OGCM_NMAX

@@ -4,9 +4,9 @@ include ../Mkinclude
 # JINTPOBJ=interpolate_data.o
 
 
-OBJS = field_def.o grid_mapping_util.o interpolation_data_latlon_mod.o
+OBJS = field_def.o DCPCMComp_mod.o grid_mapping_util.o interpolation_data_latlon_mod.o
 
-MODS =  component_field.mod  field_common.mod  field_def.mod \
+MODS =  component_field.mod  dcpcmcomp_mod.mod field_common.mod  field_def.mod \
 	grid_mapping_util.mod \
 	interpolation_data_latlon_mod.mod
 

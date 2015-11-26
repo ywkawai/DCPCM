@@ -1,17 +1,34 @@
 #!/bin/bash
 
+#
 TOPDIR=/home/ykawai/workspace/DCPCM
-atm_pe=4
-atm_wdir=${TOPDIR}/atm/dcpam5
-atm_nml=${atm_wdir}/conf/dcpam_APE_T21L26.conf
+COMDIR=${TOPDIR}/run/com_dir
+
+###################################################
+# Atmosphere model configuration
+atm_pe=8
+atm_wdir=${COMDIR}/atm/data_bugfix_run1
+atm_nml=${atm_wdir}/dcpam_APE_T21L26_run1.conf
+atm_THREADS_NUM=1
+atm_nodefile="atm_nodefile"
+
+###################################################
+# Ocean model configuration
 ocn_pe=1
-ocn_wdir=${TOPDIR}/ocn
-chm_pe=1
+ocn_wdir=${COMDIR}/ocn/data_bugfix_run1
+ocn_nml=${ocn_wdir}/dsogcm_APE_T42L60_run1.conf
+ocn_THREADS_NUM=4
+ocn_nodefile="ocn_nodefile"
 
-ln -fs ${TOPDIR}/bin/atm_driver ${atm_wdir}
-ln -fs ${TOPDIR}/bin/ocn_driver ${ocn_wdir}
+# 
+#ln -fs ${TOPDIR}/bin/atm_driver ${atm_wdir}
+#ln -fs ${TOPDIR}/bin/ocn_driver ${ocn_wdir}
+
+cp -f ${TOPDIR}/bin/atm_driver ${atm_wdir}
+cp -f ${TOPDIR}/bin/ocn_driver ${ocn_wdir}
 
 
-#ln -fs ../bin/chm_driver
-mpiexec -n ${atm_pe} -wdir ${atm_wdir} ${atm_wdir}/atm_driver -N=${atm_nml} : \
-        -n ${ocn_pe} -wdir ${ocn_wdir} ${ocn_wdir}/ocn_driver 1> Stdout 2>Stderr
+# Command for run DCPCM
+
+mpiexec -n ${atm_pe} -machinefile ${atm_nodefile} -wdir ${atm_wdir} -x OMP_NUM_THREADS=${atm_THREADS_NUM} ${atm_wdir}/atm_driver -N=${atm_nml} : \
+        -n ${ocn_pe} -machinefile ${ocn_nodefile} -wdir ${ocn_wdir} -x OMP_NUM_THREADS=${ocn_THREADS_NUM} ${ocn_wdir}/ocn_driver --N=${ocn_nml} 1> Stdout 2>Stderr

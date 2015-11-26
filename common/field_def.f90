@@ -1,8 +1,14 @@
 module field_common
-  use dc_types, only: TOKEN
-public
+
+  use dc_types, only: &
+       & TOKEN, STRING
+  
+  public
 
 #include "Component_def.h"
+
+integer, parameter :: JCUP_LOG_LEVEL = COUPLER_LOG_LEVEL
+logical, parameter :: JCUP_LOG_STDERROR = COUPLER_LOG_STDERROR
 
 character(TOKEN),  parameter :: ATM = AGCM_COMP_NAME
 integer, parameter :: GNXA = AGCM_NX
@@ -16,27 +22,31 @@ integer, parameter :: GNZO =  OGCM_NZ
 
 character(len=3),  parameter :: LAND = "land"
 character(len=3),  parameter :: ICE = "ice"
-character(len=3),  parameter :: CHM = "chm"
+!!$character(len=3),  parameter :: CHM = "chm"
 character(TOKEN), parameter :: ATM_GRID_2D = "atm_grid_2d"
 character(TOKEN), parameter :: ATM_GRID_3D = "atm_grid_3d"
 character(len=9),  parameter :: LAND_GRID = "land_grid"
 character(TOKEN),  parameter :: OCN_GRID = "ocn_grid"
-character(len=8),  parameter :: ICE_GRID = "ice_grid"
-character(len=8),  parameter :: CHM_GRID = "chm_grid"
+!!$character(len=8),  parameter :: ICE_GRID = "ice_grid"
+!!$character(len=8),  parameter :: CHM_GRID = "chm_grid"
+
+character(*), parameter :: GMAP_AO_FILENAME = GRIDMAPFILE_AO_NAME
+character(*), parameter :: GMAP_OA_FILENAME = GRIDMAPFILE_OA_NAME
 
 
-integer, parameter :: GNXL = 16
-integer, parameter :: GNYL = 16
-integer, parameter :: GNZL =  1
-
-
-integer, parameter :: GNXI = 16
-integer, parameter :: GNYI = 12
-integer, parameter :: GNZI =  1
-
-integer, parameter :: GNXC = 12
-integer, parameter :: GNYC = 15
-integer, parameter :: GNZC =  8
+!!$
+!!$integer, parameter :: GNXL = 16
+!!$integer, parameter :: GNYL = 16
+!!$integer, parameter :: GNZL =  1
+!!$
+!!$
+!!$integer, parameter :: GNXI = 16
+!!$integer, parameter :: GNYI = 12
+!!$integer, parameter :: GNZI =  1
+!!$
+!!$integer, parameter :: GNXC = 12
+!!$integer, parameter :: GNYC = 15
+!!$integer, parameter :: GNZC =  8
 
 integer, parameter :: GN25 =  6
 

@@ -26,33 +26,47 @@ contains
     real(DP) :: dlon_r!, dlat_r
     real(DP) :: dlon_s!, dlat_s
     real(DP) :: coef(4)
+    logical :: extp_flag
     
     nxr = size(x_LonR); nyr = size(y_LatR)
     nxs = size(x_LonS); nys = size(y_LatS)
     
-    dlon_r = 360d0/nxr; !dlat_r = 180d0/(nyr - 1)
-    dlon_s = 360d0/nxs; !dlat_s = 180d0/(nys - 1)
+    dlon_r = 360d0/dble(nxr); !dlat_r = 180d0/(nyr - 1)
+    dlon_s = 360d0/dble(nxs); !dlat_s = 180d0/(nys - 1)
     
     deviceID = 10
     open(unit=deviceID, file=trim(filename), status='replace')
     do jr=1, nyr
        !       js = int(dlat_r*(jr-1)/dlat_s) + 1
-       js = get_correspondID_latS(y_LatR(jr), y_LatS)
+       js = get_correspondID_latS(y_LatR(jr), y_LatS, extp_flag)
 
        if(nxr == 1) then
-          coef(1:2) = cal_coef_axisym(y_LatR(jr), y_LatS(js), y_LatS(js+1))
-          coef(1:2) = coef(1:2)/nxs
-          do is=1, nxs
-             write(deviceID, *) 1, jr, is,                      js,  coef(1)
-             write(deviceID, *) 1, jr, is,            mod(js,nys)+1, coef(2)
-          end do
+          if(.not. extp_flag) then
+             coef(1:2) = cal_coef_axisym(y_LatR(jr), y_LatS(js), y_LatS(js+1))
+             coef(1:2) = coef(1:2)/nxs
+             do is=1, nxs
+                write(deviceID, *) 1, jr, is,                      js,  coef(1)
+                write(deviceID, *) 1, jr, is,            mod(js,nys)+1, coef(2)
+             end do
+          else
+             do is=1, nxs
+                write(deviceID, *), 1, jr, is, js, 1d0/nxs
+             end do
+          end if
        else if(nxs == 1) then
-          coef(1:2) = cal_coef_axisym(y_LatR(jr), y_LatS(js), y_LatS(js+1))
-          do ir=1, nxr
-             write(deviceID, *) ir, jr, 1,                      js,  coef(1)
-             write(deviceID, *) ir, jr, 1,            mod(js,nys)+1, coef(2)
-          end do          
+          if(.not. extp_flag) then
+             coef(1:2) = cal_coef_axisym(y_LatR(jr), y_LatS(js), y_LatS(js+1))
+             do ir=1, nxr
+                write(deviceID, *) ir, jr, 1,                      js,  coef(1)
+                write(deviceID, *) ir, jr, 1,            mod(js,nys)+1, coef(2)
+             end do
+          else
+             do ir=1, nxr
+                write(deviceID, *) ir, jr, 1, js, 1d0
+             end do
+          end if
        else
+          
           do ir=1, nxr
              is = int(dlon_r*(ir-1)/dlon_s) + 1
              coef(:) = cal_coef(x_LonR(ir), y_LatR(jr), &
@@ -63,27 +77,32 @@ contains
              write(deviceID, *) ir, jr, mod(is,nxs)+1, mod(js,nys)+1, coef(3)
              write(deviceID, *) ir, jr, is,            mod(js,nys)+1, coef(4)
           end do
+             
        end if
     end do
 
     close(deviceID)
   contains
-    function get_correspondID_latS(latR, y_LatS) result(latSID)
+    function get_correspondID_latS(latR, y_LatS, extp_flag) result(latSID)
       real(DP), intent(in) :: latR
       real(DP), intent(in) :: y_LatS(:)
+      logical, intent(out) :: extp_flag
       integer :: latSID
-
+      
       integer :: j, nys
 
       nys = size(y_LatS)
       do j=1, nys-1
          if(y_LatS(j) < latR .and. latR <= y_LatS(j+1)) then
-            latSID = j; return
+            latSID = j; extp_flag = .false.
+            return
          end if
       end do
 
+      !
+      extp_flag = .true.
       if(latR <= y_LatS(1)) latSID = 1
-      if(latR >  y_LatS(nys)) latSID = nys-1
+      if(latR >  y_LatS(nys)) latSID = nys
       
     end function get_correspondID_latS
 

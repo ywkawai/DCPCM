@@ -9,7 +9,7 @@
  SPMLDIR        = $(HOME)/lib
  ISPACKDIR      = $(HOME)/lib
  NETCDFDIR      = /usr
- DCPAMDIR       = $(HOME)/workspace/dcpam5-20150217
+ DCPAMDIR       = $(HOME)/workspace/dcpam
  DSOGCMDIR      = $(HOME)/workspace/DQGModel
 
 ###
@@ -19,7 +19,7 @@
 FC		= mpif90 
 LD     		= mpif90
 
-OPTIMIZEFLAG	= -O -fopenmp
+OPTIMIZEFLAG	= -O2 -fopenmp
 # DEBUGFLAG 	= -g
 CPPFLAG 	= -cpp
 DIALECTFLAG	+= -ffree-line-length-none
@@ -87,6 +87,7 @@ JCUPLIB		= $(JCUPLIBDIR)/libjcup.a
 
 GTOOL5INCDIR    = $(GTOOL5DIR)/include
 GTOOL5LIBDIR    = $(GTOOL5DIR)/lib
+#GTOOL5LIB       = $(GTOOL5LIBDIR)/libgtool5-serial.a
 GTOOL5LIB       = $(GTOOL5LIBDIR)/libgtool5-mpi.a
 
 SPMLINCDIR      = $(SPMLDIR)/include
@@ -105,6 +106,8 @@ NETCDFFLIB       = $(GTOOL5LIBDIR)/libnetcdff.a
 DCPAMINCDIR     = $(DCPAMDIR)/include
 DCPAMLIBDIR     = $(DCPAMDIR)/lib
 DCPAMLIB     = $(DCPAMLIBDIR)/libdcpam5.a
+#DCPAMLIB     = $(DCPAMLIBDIR)/libdcpam5-sjpack.a
+#DCPAMLIB     = $(DCPAMLIBDIR)/libdcpam5-axisym.a
 
 DSOGCMINCDIR     = $(DSOGCMDIR)/include
 DSOGCMLIBDIR     = $(DSOGCMDIR)/lib

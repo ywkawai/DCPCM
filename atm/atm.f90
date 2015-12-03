@@ -172,7 +172,10 @@ contains
     use timeset, only: DelTime
     
     logical, intent(inout) :: loop_flag
-
+!!$    integer, parameter :: end_of_tstep = 2*24*731 + 1
+!!$    integer, parameter :: end_of_tstep = 2*24*181 + 1
+    integer, parameter :: end_of_tstep = 2*24*1825 + 1
+    
     tstep = 1; loop_end_flag = .false.
     do while(.not. loop_end_flag)
 
@@ -182,7 +185,10 @@ contains
        call get_and_write_data(tstep)
 
        if (my_rank==0 .or. JCUP_LOG_LEVEL >=1 ) then
-          write(*,*) "-> atm my_rank=", my_rank, "tstep=", tstep, "time=", tstep*delta_t
+          if(mod(tstep, 20) == 0) then
+             write(*,*) "-> atm my_rank=", my_rank, "tstep=", tstep, "time=", tstep*delta_t, &
+                  & "end_testep=", end_of_tstep
+          end if
        end if
        call agcm_advance_timestep(tstep, loop_end_flag)
 !!$       write(*,*) "<- atm my_rank=", my_rank, "tstep=", tstep, "time=", tstep*delta_t
@@ -193,9 +199,7 @@ contains
        call jcup_inc_time(ATM, itime)
        tstep = tstep + 1
 
-       !       if(tstep == 2*24 * 365 * 30 + 1) loop_end_flag = .true.
-!       if(tstep == 2*24 *181 + 1) loop_end_flag = .true.       
-       if(tstep == 2*24 *731 + 1) loop_end_flag = .true.       
+       if(tstep == end_of_tstep) loop_end_flag = .true.
        
     end do
     loop_flag = .false.

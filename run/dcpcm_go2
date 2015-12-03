@@ -26,16 +26,18 @@ COMDIR=${TOPDIR}/run/com_dir
 
 ###################################################
 # Atmosphere model configuration
-atm_pe=4
-atm_wdir=${COMDIR}/atm/data_longInteg_T42
-atm_nml_template=${atm_wdir}/dcpam_APE_T42L26.conf
-atm_THREADS_NUM=2
+atm_pe=8
+atm_wdir=${COMDIR}/atm/data_longInteg2
+#atm_wdir=${COMDIR}/atm/data_longInteg_T42
+atm_nml_template=${atm_wdir}/dcpam_APE_T21L26.conf
+#atm_nml_template=${atm_wdir}/dcpam_APE_T42L26.conf
+atm_THREADS_NUM=1
 atm_nodefile="atm_nodefile"
 
 ###################################################
 # Ocean model configuration
 ocn_pe=1
-ocn_wdir=${COMDIR}/ocn/data_longInteg_T42
+ocn_wdir=${COMDIR}/ocn/data_longInteg2
 ocn_nml_template=${ocn_wdir}/dsogcm_APE_T42L60.conf
 ocn_THREADS_NUM=8
 ocn_nodefile="ocn_nodefile"
@@ -50,8 +52,8 @@ CREATE_INITDATA4OGCM_CMD=/home/ykawai/workspace/DCPCM/run/script/create_initdata
 CREATE_SURFBCDATA4STANDALONEOGCM_CMD=/home/ykawai/workspace/DCPCM/run/script/create_SurfFlx4StandaloneOGCM.rb
 nCycle=50
 StartCycleNum=1
-coupledTimeIntrvPerCycle=730 #$((86400*365))
-standaloneTimeIntrvPerCycle=$((20*365)) #$((86400*365*10))
+coupledTimeIntrvPerCycle=1825 #$((86400*365))
+standaloneTimeIntrvPerCycle=$((50*365)) #$((86400*365*10))
 
 ## End of setting *******************************************************************************
 
@@ -115,7 +117,7 @@ for ((n=StartCycleNum; n<=nCycle; n++)) ; do
      s!#timeset_nml_InitYear#!2000!g; 
      s!#timeset_nml_EndYear#!2000!g;
      s!#timeset_nml_EndDay#!$((coupledRunEndTime+2))!g;
-     s!#gtool_historyauto_nml_IntValue#!5.0!g;
+     s!#gtool_historyauto_nml_IntValue#!10.0!g;
 EOF
     ` 
     atm_nml=${atmDirPath}/${atm_nml_template##*/}
@@ -131,7 +133,7 @@ EOF
      s!#TemporalInteg_nml_EndYear#!2000!g; s!#TemporalInteg_nml_EndDay#!$((coupledRunEndTime+2))!g;
      s!#BoundaryCondition_nml_ThermBCSurface#!PrescFlux!g;
      s!#BoundaryCondition_nml_SaltBCSurface#!PrescFlux!g;
-     s!#gtool_historyauto_nml_IntValue#!5.0!g;
+     s!#gtool_historyauto_nml_IntValue#!10.0!g;
 EOF
     `
     ocn_nml=${ocnDirPath}/${ocn_nml_template##*/}
@@ -172,7 +174,7 @@ EOF
       s!#RestartFile_nml_IntValue#!${standaloneTimeIntrvPerCycle}!g;
       s!#TemporalInteg_nml_RestartTimeVal#!0.0!g;
       s!#TemporalInteg_nml_InitYear#!2000!g;
-      s!#TemporalInteg_nml_EndYear#!2021!g;
+      s!#TemporalInteg_nml_EndYear#!2051!g;
       s!#TemporalInteg_nml_EndDay#!1!g;
       s!#BoundaryCondition_nml_ThermBCSurface#!PrescFlux_Han1984!g;
       s!#BoundaryCondition_nml_SaltBCSurface#!PrescFlux!g;
@@ -200,5 +202,5 @@ EOF
 	cp ${ocnDirPath_standalone}/sogcm_SurfBC/*.nc ${ocnDirPath_next}/sogcm_SurfBC/
 
     fi
-#exit
+
 done

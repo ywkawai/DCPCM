@@ -51,7 +51,7 @@ ocn_standalone_libdir="/home/ykawai/workspace/DQGModel/lib"
 CREATE_INITDATA4OGCM_CMD=/home/ykawai/workspace/DCPCM/run/script/create_initdata4OGCM.rb
 CREATE_SURFBCDATA4STANDALONEOGCM_CMD=/home/ykawai/workspace/DCPCM/run/script/create_SurfFlx4StandaloneOGCM.rb
 nCycle=50
-StartCycleNum=1
+StartCycleNum=3
 coupledTimeIntrvPerCycle=1825 #$((86400*365))
 standaloneTimeIntrvPerCycle=$((50*365)) #$((86400*365*10))
 

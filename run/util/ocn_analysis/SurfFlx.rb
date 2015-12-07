@@ -60,8 +60,8 @@ GPhys::IO.each_along_dims_write( \
                                           "LWRFlxAtm", "net long wave radiation", "W.m-2")
   net_surfflx = GPhysUtil.redef_GPhysObj(net_swradflx + net_lwradflx - sensflx - latentflx, \
                                          "NetSurfFlx", "net surface heat flux", "W.m-2")
-  p (rain/WaterDens).units
-  fwflx = GPhysUtil.redef_GPhysObj( ((rain + snow)/WaterDens - latentflx/LatentHeatV) * OneDaySec * 1e3, \
+  
+  fwflx = GPhysUtil.redef_GPhysObj( (- rain - snow - latentflx/LatentHeatV)/WaterDens * OneDaySec * 1e3, \
                                   "SurfFwFlx", "minus freshwater flux", "mm/day")
 #  p net_swradflx.val.shape
 #  p net_lwradflx.val.shape

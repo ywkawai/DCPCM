@@ -7,7 +7,7 @@ class DCPAMUtil
   attr_accessor :ax_Lon, :ax_Lat, :ax_Sig
   attr_accessor :gp_lonIntWt, :gp_latIntWt, :gp_sigIntWt
   attr_accessor :planetName
-  attr_accessor :lonAxisName, :latAxisName, :sigAxisName
+  attr_accessor :lonAxisName, :latAxisName, :sigAxisName, :sigmAxisName
   attr_accessor :const
   attr_accessor :globalVolume, :globalSurfArea
   
@@ -35,6 +35,7 @@ class DCPAMUtil
     @gp_lon = GPhys::IO.open_gturl(ncpath+"@lon")
     @gp_lat = GPhys::IO.open_gturl(ncpath+"@lat")
     @gp_sig = GPhys::IO.open_gturl(ncpath+"@sig")    
+    @gp_sigm = GPhys::IO.open_gturl(ncpath+"@sigm")    
     @gp_lonIntWt = GPhys::IO.open_gturl(ncpath+"@lon_weight")
     @gp_latIntWt = GPhys::IO.open_gturl(ncpath+"@lat_weight")
     @gp_sigIntWt = GPhys::IO.open_gturl(ncpath+"@sig_weight")
@@ -43,6 +44,7 @@ class DCPAMUtil
     @lonAxisName = "lon"
     @latAxisName = "lat"
     @sigAxisName = "sig"
+    @sigmAxisName = "sigm"
     @timeAxisName = "time"
 
     @ax_Lon = @gp_lonIntWt.axis(@lonAxisName)
@@ -74,14 +76,14 @@ class DCPAMUtil
     return globalIntLonLat(gphys)/@globalSurfArea
   end
   
-  def gen_3DGPysObj(name, long_name, units, timeAxis=nil)
+  def gen_3DGPysObj(name, long_name, units, timeAxis=nil, ax_Z=@ax_Sig)
     na = nil; grid = nil
     if timeAxis != nil
-      na = NArray.sfloat(@ax_Lon.length, @ax_Lat.length, @ax_Sig.length, timeAxis.length)
-      grid = Grid.new(@ax_Lon, @ax_Lat, @ax_Sig, timeAxis)
+      na = NArray.sfloat(@ax_Lon.length, @ax_Lat.length, ax_Z.length, timeAxis.length)
+      grid = Grid.new(@ax_Lon, @ax_Lat, ax_Z, timeAxis)
     else
-      na = NArray.sfloat(@ax_Lon.length, @ax_Lat.length, @ax_Sig.length)
-      grid = Grid.new(@ax_Lon, @ax_Lat, @ax_Sig)
+      na = NArray.sfloat(@ax_Lon.length, @ax_Lat.length, ax_Z.length)
+      grid = Grid.new(@ax_Lon, @ax_Lat, ax_Z)
     end
 
     va = VArray.new(na, {"name"=>name, "long_name"=>long_name, "units"=>units})
@@ -104,5 +106,20 @@ class DCPAMUtil
     gp_Rho.units = 'kg.m-3'
     return gp_Rho
   end
-  
+
+  def calc_MSF(gp_V, gp_Ps)
+    gp_MSF = gen_3DGPysObj("MSF", "mass stream function", "kg.s-1", gp_Ps.axis(@timeAxisName), @gp_sigm.axis(@sigmAxisName))
+
+    cos_phi = (@gp_lat * PI/180.0).cos
+    alph = gp_V * cos_phi * gp_Ps * @const::RPlanet * PI * 2.0 / @const::Grav
+    
+    kmax = @gp_sigm.val.length-2
+    (0..kmax).each do |kk|
+      k = kmax - kk
+      gp_MSF[false,k,true] = gp_MSF[false,k+1,true] + \
+                          alph[false,k,true]*(@gp_sigm[k].val - @gp_sigm[k+1].val)
+    end
+
+    return gp_MSF
+  end
 end

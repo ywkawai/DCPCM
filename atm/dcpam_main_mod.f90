@@ -793,6 +793,13 @@ module dcpam_main_mod
   real(DP), allocatable:: xy_SurfDustGravSedFlux(:,:)
 
 
+  !* For coupler
+  real(DP), allocatable, dimension(:,:) :: &
+       & xy_TauXAtm, xy_TauYAtm, xy_SensAtm, xy_LatentAtm,           &
+       & xy_LDWRFlxAtm, xy_LUWRFlxAtm, xy_SDWRFlxAtm, xy_SUWRFlxAtm, &
+       & xy_SurfAirTemp, xy_DSurfHFlxDTs, xy_DSurfLatentFlxDTs, &
+       & xy_RainAtm, xy_SnowAtm
+  
   ! 作業変数
   ! Work variables
   !
@@ -945,7 +952,80 @@ contains
     if(present(xy_SurfSnowRecv)) xy_SurfSnowB(:,:) = xy_SurfSnowRecv
 
   end subroutine dcpam_UpdateSurfaceProperties
-  
+
+  subroutine dcpam_StoreAtmSurfFlxInfo()
+
+    use constants, only: LatentHeat, CpDry
+
+    use composition, only: IndexH2OVap
+    
+    use saturate, only: &
+      & xy_CalcQVapSatOnLiq,       &
+      & xy_CalcQVapSatOnSol,       &
+      & xy_CalcDQVapSatDTempOnLiq, &
+      & xy_CalcDQVapSatDTempOnSol
+    
+    real(DP), dimension(0:iMax-1,jMax) :: &
+         & xy_SurfQVapSatOnLiq, xy_SurfQVapSatOnSol, xy_SurfQVapSat, &
+         & xy_SurfDQVapSatDTempOnLiq, xy_SurfDQVapSatDTempOnSol, xy_SurfDQVapSatDTemp
+
+    real(DP) :: delta_t
+    
+    xy_SurfQVapSatOnLiq  = &
+      & xy_CalcQVapSatOnLiq( xy_SurfTemp, xyr_Press(:,:,0) )
+    xy_SurfQVapSatOnSol  = &
+      & xy_CalcQVapSatOnSol( xy_SurfTemp, xyr_Press(:,:,0) )
+    xy_SurfQVapSat       = &
+      &   ( 1.0_DP - xy_SnowFrac ) * xy_SurfQVapSatOnLiq &
+      & + xy_SnowFrac              * xy_SurfQVapSatOnSol
+    xy_SurfDQVapSatDTempOnLiq = &
+      & xy_CalcDQVapSatDTempOnLiq( xy_SurfTemp, xy_SurfQVapSatOnLiq )
+    xy_SurfDQVapSatDTempOnSol = &
+      & xy_CalcDQVapSatDTempOnSol( xy_SurfTemp, xy_SurfQVapSatOnSol )
+    xy_SurfDQVapSatDTemp = &
+      &   ( 1.0_DP - xy_SnowFrac ) * xy_SurfDQVapSatDTempOnLiq &
+      & + xy_SnowFrac              * xy_SurfDQVapSatDTempOnSol
+
+    !
+    delta_t = DelTime
+    
+    xy_TauXAtm(:,:) = xy_SurfMomFluxX - xy_SurfVelTransCoef*xyz_DUDt(:,:,1)*2d0*delta_t
+    xy_TauYAtm(:,:) = xy_SurfMomFluxY - xy_SurfVelTransCoef*xyz_DVDt(:,:,1)*2d0*delta_t
+    xy_SensAtm(:,:) = xyr_HeatFlux(:,:,0) - &
+             CpDry*xyr_Exner(:,:,0)*xy_SurfTempTransCoef &
+          * (xyz_DTempDtVDiff(:,:,1)/xyz_Exner(:,:,1) - xy_DSurfTempDt/xyr_Exner(:,:,0)) &
+          * 2d0*delta_t
+    xy_LatentAtm(:,:) = LatentHeat*( &
+         & xyrf_QMixFlux(:,:,0,IndexH2OVap)  &
+         &   - xy_SurfHumidCoef*xy_SurfQVapTransCoef*( &
+         &     xyzf_DQMixDt(:,:,1,IndexH2OVap) - xy_SurfDQVapSatDTemp*xy_DSurfTempDt &
+         &   )* 2d0*delta_t &
+         & )
+
+    xy_LDWRFlxAtm(:,:) = xyr_RadLDwFlux(:,:,0) !+ 2d0*delta_t*( &
+!         &    xy_DSurfTempDt * xyra_DelRadLDwFlux(:,:,0,0)            &
+!         & +  xyz_DTempDtVDiff(:,:,1) * xyra_DelRadLDwFlux(:,:,0,1)   &
+!         & )
+    xy_LUWRFlxAtm(:,:) = xyr_RadLUwFlux(:,:,0) !+ 2d0*delta_t*( &
+!         &    xy_DSurfTempDt * xyra_DelRadLUwFlux(:,:,0,0)            &
+!         & +  xyz_DTempDtVDiff(:,:,1) * xyra_DelRadLUwFlux(:,:,0,1)   &
+!          & )
+
+    xy_SDWRFlxAtm(:,:) = xyr_RadSDwFlux(:,:,0)
+    xy_SUWRFlxAtm(:,:) = xyr_RadSUwFlux(:,:,0)
+
+!!$    xy_RainAtm(:,:) = xy_Rain
+!!$    xy_SnowAtm(:,:) = xy_Snow
+    
+    !
+    xy_SurfAirTemp(:,:) = xyr_Exner(:,:,0)/xyz_Exner(:,:,1)*xyz_TempN(:,:,1)
+    xy_DSurfLatentFlxDTs(:,:) = LatentHeat*xy_SurfHumidCoef*xy_SurfQVapTransCoef*xy_SurfDQVapSatDTemp
+    xy_DSurfHFlxDTs(:,:) = &
+         &   CpDry*xy_SurfTempTransCoef  &
+         & + xy_DSurfLatentFlxDTs        
+    
+  end subroutine dcpam_StoreAtmSurfFlxInfo
+
   !------------------------------------------------------------------
   
   subroutine dcpam_advance_timestep(tstep, end_loop_flag)
@@ -1930,8 +2010,8 @@ contains
 
     end select
 
-    !
-    !
+    !* For coupler ******
+    call dcpam_StoreAtmSurfFlxInfo()
     
 
     ! 力学過程
@@ -4201,7 +4281,7 @@ contains
       allocate( xyz_CloudCoverforRad(0:imax-1,1:jmax,1:kmax) )
 
       allocate( xy_SurfDustGravSedFlux(0:imax-1,1:jmax) )
-
+      
       ! ヒストリデータ出力のためのへの変数登録
       ! Register of variables for history data output
       !
@@ -4313,10 +4393,15 @@ contains
 
     end select
 
-
-
-
-
+    !* For coupler ----------------------------------------------------------------
+    allocate( xy_TauXAtm(0:imax-1,jmax), xy_TauYAtm(0:imax-1,jmax) )
+    allocate( xy_SensAtm(0:imax-1,jmax), xy_LatentAtm(0:imax-1,jmax) )
+    allocate( xy_LDWRFlxAtm(0:imax-1,jmax), xy_LUWRFlxAtm(0:imax-1,jmax) )
+    allocate( xy_SDWRFlxAtm(0:imax-1,jmax), xy_SUWRFlxAtm(0:imax-1,jmax) )
+    allocate( xy_SurfAirTemp(0:imax-1,jmax) )
+    allocate( xy_DSurfHFlxDTs(0:imax-1,jmax), xy_DSurfLatentFlxDTs(0:imax-1,jmax) )
+    allocate( xy_RainAtm(0:imax-1,jmax), xy_SnowAtm(0:imax-1,jmax) )
+    !-------------------------------------------------------------------------------
 
 
     ! 惑星表面データの設定
@@ -5214,8 +5299,16 @@ contains
       deallocate( xyz_CloudCoverforRad )
     end if ! FlagFullPhysics
 
-
-
+    !* For coupler ----------------------------------------
+    deallocate( xy_TauXAtm, xy_TauYAtm )
+    deallocate( xy_SensAtm, xy_LatentAtm )
+    deallocate( xy_LDWRFlxAtm, xy_LUWRFlxAtm )
+    deallocate( xy_SDWRFlxAtm, xy_SUWRFlxAtm )
+    deallocate( xy_SurfAirTemp )    
+    deallocate( xy_DSurfHFlxDTs, xy_DSurfLatentFlxDTs )
+    deallocate( xy_RainAtm, xy_SnowAtm )
+    !-------------------------------------------------------
+    
     select case ( IDDynMode )
     case ( IDDynModeHSPLVAS83 )
       ! 各モジュール内の変数の割付解除

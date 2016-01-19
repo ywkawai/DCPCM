@@ -50,7 +50,7 @@ ofile = NetCDF::create(OutputNCName)
 
 GPhys::IO.each_along_dims_write( \
   [gp_SURFlx, gp_SLRFlx, gp_LURFlx, gp_LDRFlx, gp_SensFlx, gp_LantentFlx, gp_Rain, gp_Snow], \
-  ofile, AxisDef::Lat){
+  ofile, AxisDef::Time){
   |swurflx, swdrflx, lwurflx, lwdrflx, sensflx, latentflx, rain, snow|
 
 

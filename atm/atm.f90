@@ -172,9 +172,9 @@ contains
     use timeset, only: DelTime
     
     logical, intent(inout) :: loop_flag
-!!$    integer, parameter :: end_of_tstep = 2*24*731 + 1
 !!$    integer, parameter :: end_of_tstep = 2*24*181 + 1
-    integer, parameter :: end_of_tstep = 2*24*1825 + 1
+    integer, parameter :: end_of_tstep = 2*24*731 + 1    
+!!$    integer, parameter :: end_of_tstep = 2*24*1825 + 1
     
     tstep = 1; loop_end_flag = .false.
     do while(.not. loop_end_flag)
@@ -399,94 +399,28 @@ contains
     use axesset, only: x_Lon, y_Lat
     use gridset,only: imax, jmax
 
-    use constants, only: LatentHeat, CpDry
-
-    use composition, only: IndexH2OVap
     
     use dcpam_main_mod, only: &
-         & xy_SurfMomFluxX, xy_SurfMomFluxY, &
-         & xyr_RadLDwFlux, xyr_RadSDwFlux, &
-         & xyr_RadLUwFlux, xyr_RadSUwFlux, &
-         & xyr_RadLFluxA, xyr_RadSFlux, &
-         & xyra_DelRadLUwFlux, &
-         & xyr_HeatFlux, xyrf_QMixFlux, &
-         & xy_Rain, xy_Snow, &
-         & xy_SurfVelTransCoef, xy_SurfTempTransCoef, xy_SurfQVapTransCoef, &
-         & xyz_DUDt, xyz_DVDt, xyz_DTempDtVDiff, xyzf_DQMixDt, xy_DSurfTempDt, &
-         & xyz_Exner, xyr_Exner, xy_SurfHumidCoef, xy_SnowFrac, xyr_Press, &
-         & xyra_DelRadLUwFlux, xyra_DelRadLDwFlux, &
-         & xy_SurfTemp, xyz_TempN
-
-    use saturate, only: &
-      & xy_CalcQVapSatOnLiq,       &
-      & xy_CalcQVapSatOnSol,       &
-      & xy_CalcDQVapSatDTempOnLiq, &
-      & xy_CalcDQVapSatDTempOnSol
+         & xy_TauXAtm, xy_TauYAtm, xy_SensAtm, xy_LatentAtm, &
+         & xy_LDWRFlxAtm, xy_LUWRFlxAtm, xy_SDWRFlxAtm, xy_SUWRFlxAtm, &
+         & xy_SurfAirTemp, xy_DSurfHFlxDTs, xy_DSurfLatentFlxDTs,      &
+         & xy_RainAtm => xy_Rain, xy_SnowAtm => xy_Snow
+!         & xy_RainAtm, xy_SnowAtm
     
     integer, intent(in) :: step
-
-    real(DP), dimension(0:iMax-1,jMax) :: &
-         & xy_TauXAtm, xy_TauYAtm, xy_SensAtm, xy_LatentAtm, xy_LDWRFlxAtm, xy_LUWRFlxAtm, &
-         & xy_SurfQVapSatOnLiq, xy_SurfQVapSatOnSol, xy_SurfQVapSat, &
-         & xy_SurfDQVapSatDTempOnLiq, xy_SurfDQVapSatDTempOnSol, xy_SurfDQVapSatDTemp, &
-         & xy_DSurfHFlxDTs, xy_DSurfLatentFlxDTs, xy_SurfAirTemp
-
     integer :: p, j, m, n
 
-    xy_SurfQVapSatOnLiq  = &
-      & xy_CalcQVapSatOnLiq( xy_SurfTemp, xyr_Press(:,:,0) )
-    xy_SurfQVapSatOnSol  = &
-      & xy_CalcQVapSatOnSol( xy_SurfTemp, xyr_Press(:,:,0) )
-    xy_SurfQVapSat       = &
-      &   ( 1.0_DP - xy_SnowFrac ) * xy_SurfQVapSatOnLiq &
-      & + xy_SnowFrac              * xy_SurfQVapSatOnSol
-    xy_SurfDQVapSatDTempOnLiq = &
-      & xy_CalcDQVapSatDTempOnLiq( xy_SurfTemp, xy_SurfQVapSatOnLiq )
-    xy_SurfDQVapSatDTempOnSol = &
-      & xy_CalcDQVapSatDTempOnSol( xy_SurfTemp, xy_SurfQVapSatOnSol )
-    xy_SurfDQVapSatDTemp = &
-      &   ( 1.0_DP - xy_SnowFrac ) * xy_SurfDQVapSatDTempOnLiq &
-      & + xy_SnowFrac              * xy_SurfDQVapSatDTempOnSol
-
-    xy_TauXAtm(:,:) = xy_SurfMomFluxX! - 0d0*xy_SurfVelTransCoef*xyz_DUDt(:,:,1)*2d0*delta_t
-    xy_TauYAtm(:,:) = xy_SurfMomFluxY! - 0d0*xy_SurfVelTransCoef*xyz_DVDt(:,:,1)*2d0*delta_t
-    xy_SensAtm(:,:) = xyr_HeatFlux(:,:,0)! - &
-         !&    0d0*CpDry*xyr_Exner(:,:,0)*xy_SurfTempTransCoef&
-         !& * (xyz_DTempDtVDiff(:,:,1)/xyz_Exner(:,:,1) - xy_DSurfTempDt/xyr_Exner(:,:,0)) &
-         !& * 2d0*delta_t
-    xy_LatentAtm(:,:) = LatentHeat*( &
-         & xyrf_QMixFlux(:,:,0,IndexH2OVap) - &
-         &   0d0*xy_SurfHumidCoef*xy_SurfQVapTransCoef*( &
-         &     xyzf_DQMixDt(:,:,1,IndexH2OVap) - xy_SurfDQVapSatDTemp*xy_DSurfTempDt &
-         &   )* 2d0*delta_t )
-
-    xy_DSurfLatentFlxDTs(:,:) = LatentHeat*xy_SurfHumidCoef*xy_SurfQVapTransCoef*xy_SurfDQVapSatDTemp
-    xy_DSurfHFlxDTs(:,:) = &
-         &   CpDry*xy_SurfTempTransCoef  &
-         & + xy_DSurfLatentFlxDTs        
-
-
-    xy_SurfAirTemp(:,:) = xyr_Exner(:,:,0)/xyr_Exner(:,:,1)*xyz_TempN(:,:,1)
-
-    xy_LDWRFlxAtm(:,:) = xyr_RadLDwFlux(:,:,0) + 0d0*2d0*delta_t*( &
-         &    xy_DSurfTempDt * xyra_DelRadLDwFlux(:,:,0,0)            &
-         & +  xyz_DTempDtVDiff(:,:,1) * xyra_DelRadLDwFlux(:,:,0,1)   &
-         & )
-    xy_LUWRFlxAtm(:,:) = xyr_RadLUwFlux(:,:,0) + 0d0*2d0*delta_t*( &
-         &    xy_DSurfTempDt * xyra_DelRadLUwFlux(:,:,0,0)            &
-         & +  xyz_DTempDtVDiff(:,:,1) * xyra_DelRadLUwFlux(:,:,0,1)   &
-         & )
     
     call atm_set_send_2d(1, -xy_TauXAtm )
     call atm_set_send_2d(2, -xy_TauYAtm )    
     call atm_set_send_2d(3, -xy_SensAtm )
     call atm_set_send_2d(4, -xy_LatentAtm )
-    call atm_set_send_2d(5, xyr_RadSDwFlux(:,:,0) )
+    call atm_set_send_2d(5, xy_SDWRFlxAtm )
     call atm_set_send_2d(6, xy_LDWRFlxAtm )    
-    call atm_set_send_2d(7, xyr_RadSUwFlux(:,:,0) )
+    call atm_set_send_2d(7, xy_SUWRFlxAtm )
     call atm_set_send_2d(8, xy_LUWRFlxAtm )    
-    call atm_set_send_2d(9, xy_Rain )
-    call atm_set_send_2d(10, xy_Snow )
+    call atm_set_send_2d(9, xy_RainAtm )
+    call atm_set_send_2d(10, xy_SnowAtm )
     call atm_set_send_2d(11, xy_DSurfHFlxDTs )
     call atm_set_send_2d(12, xy_SurfAirTemp )
     call atm_set_send_2d(13, xy_DSurfLatentFlxDTs )

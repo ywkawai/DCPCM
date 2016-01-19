@@ -14,7 +14,12 @@ module DCModelIOUtil
       gp_Array = []
       varNames.each{|varName|
         gturl = "#{CurrentDir}/#{varName}.nc@#{varName}"
-        gp_Array.push(GPhys::IO.open_gturl(gturl))
+        gp = GPhys::IO.open_gturl(gturl)
+        if gp.axnames.include?("time") then
+          time = gp.axis("time")
+          gp = gp.cut("time"=>time.pos.val[0]..time.pos.val[time.length-1])
+        end
+        gp_Array.push(gp)
       }
 
       return gp_Array

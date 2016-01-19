@@ -253,8 +253,8 @@ contains
 
     integer :: tstep
     logical :: loop_end_flag
-    integer, parameter :: end_of_tstep = (24/3)*1825 + 1
-!!$    integer, parameter :: end_of_tstep = (24/3)*731 + 1
+!!$    integer, parameter :: end_of_tstep = (24/3)*1825 + 1
+    integer, parameter :: end_of_tstep = (24/3)*731 + 1
 !!$    integer, parameter :: end_of_tstep = (24/3)*181 + 1
 
     tstep = 1; loop_end_flag = .false.
@@ -262,7 +262,7 @@ contains
        call jcup_set_time(OCN, itime, delta_t)
 
 !!$       write(*,*) "* COUPLER Get: ocn my_rank=", my_rank, "tstep=", tstep, "time=", tstep*delta_t       
-       call get_and_write_data(tstep)
+1       call get_and_write_data(tstep)
 
        if(my_rank==0 .or. JCUP_LOG_LEVEL>=1) then
           if(mod(tstep, 20)==0) then

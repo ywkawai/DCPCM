@@ -51,9 +51,9 @@ ocn_standalone_libdir="/home/ykawai/workspace/DQGModel/lib"
 CREATE_INITDATA4OGCM_CMD=/home/ykawai/workspace/DCPCM/run/script/create_initdata4OGCM.rb
 CREATE_SURFBCDATA4STANDALONEOGCM_CMD=/home/ykawai/workspace/DCPCM/run/script/create_SurfFlx4StandaloneOGCM.rb
 nCycle=50
-StartCycleNum=3
-coupledTimeIntrvPerCycle=1825 #$((86400*365))
-standaloneTimeIntrvPerCycle=$((50*365)) #$((86400*365*10))
+StartCycleNum=11
+coupledTimeIntrvPerCycle=730 #$((86400*365))
+standaloneTimeIntrvPerCycle=$((200*365)) #$((86400*365*10))
 
 ## End of setting *******************************************************************************
 
@@ -174,7 +174,7 @@ EOF
       s!#RestartFile_nml_IntValue#!${standaloneTimeIntrvPerCycle}!g;
       s!#TemporalInteg_nml_RestartTimeVal#!0.0!g;
       s!#TemporalInteg_nml_InitYear#!2000!g;
-      s!#TemporalInteg_nml_EndYear#!2051!g;
+      s!#TemporalInteg_nml_EndYear#!2201!g;
       s!#TemporalInteg_nml_EndDay#!1!g;
       s!#BoundaryCondition_nml_ThermBCSurface#!PrescFlux_Han1984!g;
       s!#BoundaryCondition_nml_SaltBCSurface#!PrescFlux!g;

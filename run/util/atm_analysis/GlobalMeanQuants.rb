@@ -44,15 +44,18 @@ GPhys::IO.each_along_dims_write(
   puts "time=#{time.val[0]} [#{time.units}] .."
 
   [ \
-    GPhysUtil.redef_GPhysObj( @dcpamUtil.globalMeanSurf(surfTemp),        \
-                              "SurfTemp",                                 \
-                              "global mean of surface temperature", "K"), \
-    GPhysUtil.redef_GPhysObj( @dcpamUtil.globalMeanSurf(olr),             \
-                              "OLR",                                      \
-                              "global mean of OLR", "W.m-2"),             \
-    GPhysUtil.redef_GPhysObj( @dcpamUtil.globalMeanSurf(osr),             \
-                              "OSR",                                      \
-                              "global mean of OSR", "W.m-2")              \
+    GPhysUtil.redef_GPhysObj( @dcpamUtil.globalMeanSurf(surfTemp),         \
+                              "SurfTemp",                                  \
+                              "global mean of surface temperature", "K" ), \
+    GPhysUtil.redef_GPhysObj( @dcpamUtil.globalMeanSurf(olr),              \
+                              "OLR",                                       \
+                              "global mean of OLR", "W.m-2" ),             \
+    GPhysUtil.redef_GPhysObj( @dcpamUtil.globalMeanSurf(-osr),             \
+                             "mOSR",                                       \
+                             "global mean of minus OSR", "W.m-2"),         \
+    GPhysUtil.redef_GPhysObj( @dcpamUtil.globalMeanSurf(olr + osr),        \
+                              "RadTOA",                                    \
+                              "global mean of net radiation at TOA", "W.m-2" ), \
   ]
 }
 ofile.close

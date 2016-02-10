@@ -30,14 +30,14 @@ AxisDef = DCPAMUtil::AxisNameDef
 puts "CurrentDir=#{CurrentDir} .."
 @dcpamUtil = DCPAMUtil.new(PlanetName, "#{CurrentDir}/#{VarDef::U}.nc")
 
-varList = [ "SurfTempOcn", "OLR", "OSR" ]
+varList = [ "SurfTempOcn", "OLRA", "OSRA" ]
 
 gp_SurfTemp, gp_OLR, gp_OSR \
  = GPhysUtil.get_GPhysObjs(varList)
 
 ofile = NetCDF::create(OutputNCName)
-GPhys::IO.each_along_dims_write( 
-  [gp_SurfTemp, gp_OLR, gp_OSR], ofile, AxisDef::Time){
+GPhys::IO.each_along_dims_write(  
+ [gp_SurfTemp, gp_OLR, gp_OSR], ofile, AxisDef::Time){
   |surfTemp, olr, osr|
 
   time = surfTemp.axis("time").pos

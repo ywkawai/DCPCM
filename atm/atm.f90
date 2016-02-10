@@ -75,6 +75,8 @@ module mod_atm
 
   integer, parameter :: OCN_coupling_cycle = ATMOCN_COUPLING_CYCLE
 
+  real(DP), allocatable :: xy_TmpTAvg(:,:)
+  
 contains
 
   subroutine atm_init()
@@ -90,7 +92,7 @@ contains
 
     !* dcpam5
 
-    use gridset, only: a_jmax
+    use gridset, only: a_jmax, iMax, jMax
 
     use timeset, only: InitialDate, DelTime, RestartTime
     
@@ -123,6 +125,9 @@ contains
          &        InitialDate%hour, InitialDate%min, int(InitialDate%sec)  /)
     RestartTimeSec = RestartTime
     delta_t = AGCM_DELTIME
+
+    allocate( xy_TmpTAvg(0:iMax-1, jMax) )
+    xy_TmpTAvg = 0d0
     
     !*****************************************************
     
@@ -173,8 +178,8 @@ contains
     
     logical, intent(inout) :: loop_flag
 !!$    integer, parameter :: end_of_tstep = 2*24*181 + 1
-    integer, parameter :: end_of_tstep = 2*24*731 + 1    
-!!$    integer, parameter :: end_of_tstep = 2*24*1825 + 1
+!!$    integer, parameter :: end_of_tstep = 2*24*731 + 1    
+    integer, parameter :: end_of_tstep = 2*24*1461 + 1
     
     tstep = 1; loop_end_flag = .false.
     do while(.not. loop_end_flag)
@@ -303,6 +308,7 @@ contains
     call jcup_def_varp(field%varp(11)%varp_ptr, ATM, "DSurfHFlxDTsAtm", ATM_GRID_2D) 
     call jcup_def_varp(field%varp(12)%varp_ptr, ATM, "SurfAirTempAtm", ATM_GRID_2D) 
     call jcup_def_varp(field%varp(13)%varp_ptr, ATM, "DSurfLatentFlxDTsAtm", ATM_GRID_2D) 
+!!$    call jcup_def_varp(field%varp(14)%varp_ptr, ATM, "DLWRFlxDTsAtm", ATM_GRID_2D) 
 !!$    call jcup_def_varp(field%varp(11)%varp_ptr, ATM, "SurfTempTransCoefAtm", ATM_GRID_2D) 
 !!$    call jcup_def_varp(field%varp(12)%varp_ptr, ATM, "SurfQVapTransCoefAtm", ATM_GRID_2D) 
 
@@ -398,18 +404,27 @@ contains
 
     use axesset, only: x_Lon, y_Lat
     use gridset,only: imax, jmax
-
+    use constants, only: RPlanet
     
     use dcpam_main_mod, only: &
          & xy_TauXAtm, xy_TauYAtm, xy_SensAtm, xy_LatentAtm, &
          & xy_LDWRFlxAtm, xy_LUWRFlxAtm, xy_SDWRFlxAtm, xy_SUWRFlxAtm, &
          & xy_SurfAirTemp, xy_DSurfHFlxDTs, xy_DSurfLatentFlxDTs,      &
-         & xy_RainAtm => xy_Rain, xy_SnowAtm => xy_Snow
+         & xy_RainAtm => xy_Rain, xy_SnowAtm => xy_Snow, &
+         & xyra_DelRadLUwFlux, xyra_DelRadLDwFlux         
 !         & xy_RainAtm, xy_SnowAtm
+
+    use intavr_operate, only: &
+         & IntLonLat_xy
+   
+
+    use mpi
     
     integer, intent(in) :: step
     integer :: p, j, m, n
-
+    real(DP) :: Tmpavg, TmpAvgGlobal, SurfArea
+    integer :: ierr
+    real(DP), parameter :: PI = acos(-1d0)
     
     call atm_set_send_2d(1, -xy_TauXAtm )
     call atm_set_send_2d(2, -xy_TauYAtm )    
@@ -424,11 +439,27 @@ contains
     call atm_set_send_2d(11, xy_DSurfHFlxDTs )
     call atm_set_send_2d(12, xy_SurfAirTemp )
     call atm_set_send_2d(13, xy_DSurfLatentFlxDTs )
+!!$    call atm_set_send_2d(14, xyra_DelRadLUwFlux(:,:,0,0) - xyra_DelRadLDwFlux(:,:,0,0))
+
 !!$    call atm_set_send_2d(11, xy_SurfTempTransCoef)
 !!$    call atm_set_send_2d(12, xy_SurfHumidCoef*xy_SurfQVapTransCoef)
     
 !!$    if(my_rank==7) then
 !!$       write(*,*) "---- tstep=", tstep, ",xyr_HeatFlux(0,1,0)=",sum(xyr_HeatFlux(:,1,0))/dble(iMax), ", lat=", y_Lat(1)*180/acos(-1d0)
+!!$    end if
+
+!!$    xy_TmpTAvg = xy_TmpTAvg +  &
+!!$         &   (xy_SUWRFlxAtm - xy_SDWRFlxAtm) &
+!!$         & + (xy_LUWRFlxAtm - xy_LDWRFlxAtm) &
+!!$         & + xy_LatentAtm &
+!!$         & + xy_SensAtm
+!!$    
+!!$    if( mod(tstep*delta_t, OCN_coupling_cycle) == 0) then
+!!$       TmpAvg = IntLonLat_xy(xy_TmpTAvg)/(OCN_coupling_cycle/delta_t) 
+!!$       if( my_rank == 0) then
+!!$          write(*,*) "ATM: t=", tstep*delta_t, TmpAvg/(4d0*PI)!SurfArea
+!!$       end if
+!!$       xy_TmpTAvg = 0.0d0      
 !!$    end if
   contains
     subroutine atm_set_send_2d(varpID, send_data)

@@ -12,12 +12,21 @@ module DCModelIOUtil
   module GPhysUtil
     def self.get_GPhysObjs(varNames)
       gp_Array = []
+      time_len_min = 1e15
       varNames.each{|varName|
         gturl = "#{CurrentDir}/#{varName}.nc@#{varName}"
         gp = GPhys::IO.open_gturl(gturl)
         if gp.axnames.include?("time") then
           time = gp.axis("time")
-          gp = gp.cut("time"=>time.pos.val[0]..time.pos.val[time.length-1])
+          time_len_min = time.length if time.length < time_len_min
+        end
+      }
+      varNames.each{|varName|
+        gturl = "#{CurrentDir}/#{varName}.nc@#{varName}"
+        gp = GPhys::IO.open_gturl(gturl)
+        if gp.axnames.include?("time") then
+          time = gp.axis("time")
+          gp = gp.cut("time"=>time.pos.val[0]..time.pos.val[time_len_min-1])
         end
         gp_Array.push(gp)
       }

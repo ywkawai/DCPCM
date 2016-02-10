@@ -23,6 +23,9 @@ class DennouOGCMUtil
     
     PTempBasic = 'PTempBasic'
     TotDepthBasic = 'TotDepthBasic'
+
+    BolusU = 'BolusU'
+    BolusV = 'BolusV'
   end
 
   class AxisNameDef

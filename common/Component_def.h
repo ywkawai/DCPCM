@@ -17,9 +17,9 @@
 #define OGCM_NY         64
 #define OGCM_NZ         61
 #define OGCM_NMAX       42
-#define OGCM_DELTIME    10800d0
+#define OGCM_DELTIME    14400d0
 
-#define ATMOCN_COUPLING_CYCLE 10800d0
+#define ATMOCN_COUPLING_CYCLE 14400d0
 
 #define GRIDMAPFILE_AO_NAME "/home/ykawai/workspace/DCPCM/run/com_dir/common/gmap-ATM_T21-OCN_Pl42.dat"
 #define GRIDMAPFILE_OA_NAME "/home/ykawai/workspace/DCPCM/run/com_dir/common/gmap-OCN_Pl42-ATM_T21.dat"

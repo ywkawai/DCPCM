@@ -991,8 +991,9 @@ contains
     
     xy_TauXAtm(:,:) = xy_SurfMomFluxX - xy_SurfVelTransCoef*xyz_DUDt(:,:,1)*2d0*delta_t
     xy_TauYAtm(:,:) = xy_SurfMomFluxY - xy_SurfVelTransCoef*xyz_DVDt(:,:,1)*2d0*delta_t
+
     xy_SensAtm(:,:) = xyr_HeatFlux(:,:,0) - &
-             CpDry*xyr_Exner(:,:,0)*xy_SurfTempTransCoef &
+            CpDry*xyr_Exner(:,:,0)*xy_SurfTempTransCoef &
           * (xyz_DTempDtVDiff(:,:,1)/xyz_Exner(:,:,1) - xy_DSurfTempDt/xyr_Exner(:,:,0)) &
           * 2d0*delta_t
     xy_LatentAtm(:,:) = LatentHeat*( &
@@ -1001,21 +1002,20 @@ contains
          &     xyzf_DQMixDt(:,:,1,IndexH2OVap) - xy_SurfDQVapSatDTemp*xy_DSurfTempDt &
          &   )* 2d0*delta_t &
          & )
-
-    xy_LDWRFlxAtm(:,:) = xyr_RadLDwFlux(:,:,0) !+ 2d0*delta_t*( &
-!         &    xy_DSurfTempDt * xyra_DelRadLDwFlux(:,:,0,0)            &
-!         & +  xyz_DTempDtVDiff(:,:,1) * xyra_DelRadLDwFlux(:,:,0,1)   &
-!         & )
-    xy_LUWRFlxAtm(:,:) = xyr_RadLUwFlux(:,:,0) !+ 2d0*delta_t*( &
-!         &    xy_DSurfTempDt * xyra_DelRadLUwFlux(:,:,0,0)            &
-!         & +  xyz_DTempDtVDiff(:,:,1) * xyra_DelRadLUwFlux(:,:,0,1)   &
-!          & )
+!!$    xy_LatentAtm(:,:) = xy_SurfLatentHeatFluxA
+    
+    xy_LDWRFlxAtm(:,:) = xyr_RadLDwFlux(:,:,0) + 2d0*delta_t*( &
+         &    xy_DSurfTempDt * xyra_DelRadLDwFlux(:,:,0,0)            &
+         & +  xyz_DTempDtVDiff(:,:,1) * xyra_DelRadLDwFlux(:,:,0,1)   &
+         & )
+    xy_LUWRFlxAtm(:,:) = xyr_RadLUwFlux(:,:,0) + 2d0*delta_t*( &
+         &    xy_DSurfTempDt * xyra_DelRadLUwFlux(:,:,0,0)            &
+         & +  xyz_DTempDtVDiff(:,:,1) * xyra_DelRadLUwFlux(:,:,0,1)   &
+         & )
 
     xy_SDWRFlxAtm(:,:) = xyr_RadSDwFlux(:,:,0)
     xy_SUWRFlxAtm(:,:) = xyr_RadSUwFlux(:,:,0)
 
-!!$    xy_RainAtm(:,:) = xy_Rain
-!!$    xy_SnowAtm(:,:) = xy_Snow
     
     !
     xy_SurfAirTemp(:,:) = xyr_Exner(:,:,0)/xyz_Exner(:,:,1)*xyz_TempN(:,:,1)

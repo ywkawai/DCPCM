@@ -201,7 +201,7 @@ contains
     call jcup_def_varg(field%varg(10)%varg_ptr, OCN, "SnowAtm", OCN_GRID, 1, &
          & SEND_MODEL_NAME=ATM, SEND_DATA_NAME="SnowAtm", &
          & RECV_MODE="AVR", INTERVAL=ATM_coupling_cycle, TIME_LAG=-1, MAPPING_TAG=1, EXCHANGE_TAG=3)
-    call jcup_def_varg(field%varg(11)%varg_ptr, OCN, "DSurfFlxDTsAtm", OCN_GRID, 1, &
+    call jcup_def_varg(field%varg(11)%varg_ptr, OCN, "DSurfHFlxDTsAtm", OCN_GRID, 1, &
          & SEND_MODEL_NAME=ATM, SEND_DATA_NAME="DSurfHFlxDTsAtm", &
          & RECV_MODE="AVR", INTERVAL=ATM_coupling_cycle, TIME_LAG=-1, MAPPING_TAG=1, EXCHANGE_TAG=4)
     call jcup_def_varg(field%varg(12)%varg_ptr, OCN, "SurfAirTempAtm", OCN_GRID, 1, &
@@ -210,6 +210,9 @@ contains
     call jcup_def_varg(field%varg(13)%varg_ptr, OCN, "DSurfLatentFlxDTsAtm", OCN_GRID, 1, &
          & SEND_MODEL_NAME=ATM, SEND_DATA_NAME="DSurfLatentFlxDTsAtm", &
          & RECV_MODE="AVR", INTERVAL=ATM_coupling_cycle, TIME_LAG=-1, MAPPING_TAG=1, EXCHANGE_TAG=4)
+!!$    call jcup_def_varg(field%varg(14)%varg_ptr, OCN, "DLWRFlxDTsAtm", OCN_GRID, 1, &
+!!$         & SEND_MODEL_NAME=ATM, SEND_DATA_NAME="DLWRFlxDTsAtm", &
+!!$         & RECV_MODE="AVR", INTERVAL=ATM_coupling_cycle, TIME_LAG=-1, MAPPING_TAG=1, EXCHANGE_TAG=4)
     
     call jcup_end_var_def()
 
@@ -254,15 +257,16 @@ contains
     integer :: tstep
     logical :: loop_end_flag
 !!$    integer, parameter :: end_of_tstep = (24/3)*1825 + 1
-    integer, parameter :: end_of_tstep = (24/3)*731 + 1
-!!$    integer, parameter :: end_of_tstep = (24/3)*181 + 1
+!!$    integer, parameter :: end_of_tstep = (24/3)*731 + 1
+    integer, parameter :: end_of_tstep = (24/4)*1461 + 1
+!!$    integer, parameter :: end_of_tstep = (24/3)*7301 + 1
 
     tstep = 1; loop_end_flag = .false.
     do while(.not. loop_end_flag)
        call jcup_set_time(OCN, itime, delta_t)
 
 !!$       write(*,*) "* COUPLER Get: ocn my_rank=", my_rank, "tstep=", tstep, "time=", tstep*delta_t       
-1       call get_and_write_data(tstep)
+       call get_and_write_data(tstep)
 
        if(my_rank==0 .or. JCUP_LOG_LEVEL>=1) then
           if(mod(tstep, 20)==0) then
@@ -348,14 +352,16 @@ contains
          & xy_SWDWRFlx, xy_SWUWRFlx, xy_LWDWRFlx, xy_LWUWRFlx, &
          & xy_SensDWHFlx, xy_LatentDWHFlx, &
          & xy_Wrain, xy_Wsnow, xy_Wevap, &
-         & xy_DSurfHFlxDTs, xy_DSurfLatentFlxDTs, xy_SurfAirTemp
+         & xy_DSurfHFlxDTs, xy_DSurfLatentFlxDTs, xy_SurfAirTemp, &
+         & xy_DLWRFlxDTs
 
     use VariableSet_mod, only: &
          & xyz_PTempEddN, z_PTempBasic
 
     use SpmlUtil_mod, only: &
          & xy_w, w_xy, &
-         & w_VorDiv2VectorCosLat, w_VectorCosLat2VorDiv_2
+         & w_VorDiv2VectorCosLat, w_VectorCosLat2VorDiv_2, &
+         & AvrLonLat_xy
     
     integer, intent(in) :: tstep
 
@@ -390,6 +396,7 @@ contains
     call ocn_get_write(11, 'DSurfHFlxDTsAtm', xy_DSurfHFlxDTs)
     call ocn_get_write(12, 'SurfAirTempAtm', xy_SurfAirTemp)
     call ocn_get_write(13, 'DSurfLatentFlxDTsAtm', xy_DSurfLatentFlxDTs)
+!!$    call ocn_get_write(14, 'DLWRFlxDTsAtm', xy_DLWRFlxDTs)
     
     !
     !$omp parallel workshare
@@ -402,7 +409,14 @@ contains
     
 !!$    call output_var(OutputCurrentTime, 'EvapAtm', xy_Wevap)
 !!$    call output_var(OutputCurrentTime, 'FwFlxAtm', xy_Wrain + xy_Wsnow - xy_Wevap)
-    
+ 
+!!$    write(*,*) "OCN: t=", (tstep-1)*delta_t, &
+!!$         & AvrLonLat_xy( &
+!!$         &   xy_LatentDWHFlx                            &
+!!$         & + xy_SensDWHFlx                              &
+!!$         & + (xy_LWDWRFlx - xy_LWUWRFlx)                &
+!!$         & + (xy_SWDWRFlx - xy_SWUWRFlx)                &
+!!$         & )
   contains
     subroutine ocn_get_write(vargID, vargName, xy_getdata)
       integer, intent(in) :: vargID
@@ -470,6 +484,9 @@ contains
 
     call HistoryAutoAddVariable('DSurfLatentFlxDTsAtm', &
          & dims=dims_XYT, longname='DSurfLatentFlxDTsAtm', units='W.m-2.K-1')
+
+    call HistoryAutoAddVariable('DLWRFlxDTsAtm', &
+         & dims=dims_XYT, longname='DLWRFlxDTsAtm', units='W.m-2.K-1')
     
     call HistoryAutoAddVariable('RainAtm', &
          & dims=dims_XYT, longname='rain', units='kg.m-2.s-1')

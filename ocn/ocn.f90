@@ -313,22 +313,39 @@ contains
          & AlbedoSnow, AlbedoIce, AlbedoOcean
     
     use VarSetSeaice_mod, only: &
-         & xy_SIceSurfTempN, xy_SnowThickN, xy_IceThickN
+         & xy_SIceSurfTempN, xy_SnowThickN, xy_IceThickN, xy_SIceConN
     
     integer, intent(in) :: step
-    real(DP), dimension(0:iMax-1,jMax) :: xy_SurfTemp, xy_SurfAlbedo
-
-    where(xy_SnowThickN > 0d0)
-       xy_SurfTemp = degC2K(xy_SIceSurfTempN)
-       xy_SurfAlbedo = AlbedoSnow
-    elsewhere(xy_IceThickN > 0d0)
-       xy_SurfTemp = degC2K(xy_SIceSurfTempN)
-       xy_SurfAlbedo = AlbedoIce
-    elsewhere
-       xy_SurfTemp = z_PTempBasic(0) + xyz_PTempEddN(:,:,0)
-       xy_SurfAlbedo = AlbedoOcean
-    end where
     
+    real(DP) :: xy_SurfTemp(0:iMax-1,jMax)
+    real(DP) :: xy_SurfAlbedo(0:iMax-1,jMax)
+    real(DP) :: iceFrac, PTempO
+    
+    integer :: i, j
+
+    !$omp parallel do private(i, iceFrac, PTempO)
+    do j=1, jMax
+       do i=0, iMax-1
+          
+          iceFrac = xy_SIceConN(i,j)
+          PTempO = z_PTempBasic(0) + xyz_PTempEddN(i,j,0)
+          
+          if ( iceFrac > 0d0 ) then
+             xy_SurfTemp(i,j) =    iceFrac * degC2K(xy_SIceSurfTempN(i,j)) &
+                                 + (1d0 - iceFrac) * PTempO
+             if ( xy_SnowThickA(i,j) > 0d0 ) then
+                xy_SurfAlbedo(i,j) = iceFrac*AlbedoSnow + (1d0 - iceFrac)*AlbedoOcean
+             else
+                xy_SurfAlbedo(i,j) = iceFrac*AlbedoIce + (1d0 - iceFrac)*AlbedoOcean
+             end if
+          else
+             xy_SurfTemp(i,j) = PTempO
+             xy_SurfAlbedo(i,j) = AlbedoOcean
+          end if
+          
+       end do
+    end do
+        
     call jcup_put_data(field%varp(1)%varp_ptr, pack(xy_SurfTemp, mask=field%mask2d))
     call jcup_put_data(field%varp(2)%varp_ptr, pack(xy_SurfAlbedo, mask=field%mask2d))
     call jcup_put_data(field%varp(3)%varp_ptr, pack(xy_SnowThickN, mask=field%mask2d))
